@@ -27,3 +27,4 @@ keys:
 * add comments
 * use CLI lib, potentially [hscurses](http://hackage.haskell.org/package/hscurses)
 * test if the player wins, i.e.: a cell reaches 2048.
+* cannot trigger game over.
