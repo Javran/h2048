@@ -1,3 +1,6 @@
+module Game.H2048.Core
+where
+
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Random
@@ -161,9 +164,3 @@ replace :: Int -> a -> [a] -> [a]
 replace pos v xs = as ++ v : bs
     where
         (as, _:bs) = splitAt pos xs
-
-main :: IO ()
-main = do
-    hSetBuffering stdin NoBuffering
-    g <- newStdGen
-    void $ evalRandT (initGame >>= playGame) g
