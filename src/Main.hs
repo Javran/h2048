@@ -9,6 +9,8 @@ import Game.H2048.Core
 
 main :: IO ()
 main = do
+    -- don't wait for the "enter"
     hSetBuffering stdin NoBuffering
     g <- newStdGen
+    -- initialize game based on the random seed
     void $ evalRandT (initGame >>= playGame) g
