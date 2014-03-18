@@ -26,7 +26,7 @@ data Dir = DUp
          | DRight
          deriving (Enum, Bounded, Eq, Ord, Show)
 
--- all possible values for a Bounded Enum
+-- | all possible values for a Bounded Enum
 universe :: (Bounded e, Enum e) => [e]
 universe = [minBound .. maxBound]
 
@@ -71,48 +71,16 @@ drawBoard board = do
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
 compactLine :: Line -> Line
-compactLine =
-    bracketF pack unpack compactNonzeros
+compactLine = bracketF
+                  (filter (/=0))           -- remove zeros before processing
+                  (take 4 . (++ repeat 0)) -- bring back zeros after processomg
+                  merge                    -- try to merge
     where
-        -- remove all zeros from a line
-        pack = filter (/= 0)
-        -- bring back dropped zeros
-        unpack = padLeft 4
-
-        padLeft :: Int -> Line -> Line
-        -- `replicate` works on negative numbers (returns []),
-        padLeft l line = line ++ replicate (l - length line) 0
-
-        -- compact a line that does not contain zeros
-        compactNonzeros xs = pack rLine
-            where
-                -- given that `0` cannot occur in `xs`,
-                -- we add this dummy `0` to kick things cached into `rLine`
-                -- after that, rLine might contain a trailing '0',
-                -- use `pack` to maintain the property of "mutated" `xs`.
-                (rLine, _) = foldl update initState (xs ++ [0])
-
-                initState = ([], Nothing)
-
-                -- for every two consecutive elements, try to merge
-                -- respecting the game rule.
-
-                -- when an element is put into the state,
-                -- it gets cached in the Maybe until the next element comes
-                -- we take care of two consecutive elements once the next element is available.
-                update :: (Line, Maybe Int) -> Int -> (Line, Maybe Int)
-                update (curLine, prevBoardM) curBoard =
-                    case prevBoardM of
-                      -- nothing in the Maybe, next element goes into it.
-                      Nothing ->
-                          (curLine, Just curBoard)
-                      -- something is cached in the Maybe, time to put elements into the result
-                      Just prevBoard ->
-                          if prevBoard == curBoard
-                              -- can be merged
-                              then (curLine ++ [curBoard * 2], Nothing)
-                              -- cannot merge, `curBoard` kicks the previous value out of Maybe
-                              else (curLine ++ [prevBoard], Just curBoard)
+        merge (x:y:xs) =
+            if x == y
+                then (x+y) : merge xs      -- merge if first two equals
+                else x : merge (y:xs)      -- otherwise keep the first one
+        merge r = r
 
 -- | when player moves, give the next board before adding random cells into it
 --   returns the board after modification together with a boolean value.
