@@ -7,6 +7,7 @@ import Game.H2048.Core
 
 testcases :: [ ([Int], [Int]) ]
 testcases =
+    -- input    , expected
     [ ([0,0,0,0], [0,0,0,0])
     , ([1,0,0,1], [2,0,0,0])
     , ([2,2,2,2], [4,4,0,0])
