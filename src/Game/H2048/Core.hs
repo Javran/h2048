@@ -150,9 +150,9 @@ updateBoard d board = (board', board /= board')
 --   third argument to perform operations,
 --   second argument to convert back
 bracketF :: (c -> a) -- ^ open bracket
-          -> (b -> d) -- ^ close bracket
-          -> (a -> b) -- ^ what's in the bracket
-          -> (c -> d) -- ^ the resulting function
+         -> (b -> d) -- ^ close bracket
+         -> (a -> b) -- ^ what's in the bracket
+         -> (c -> d) -- ^ the resulting function
 bracketF openF closeF f = closeF . f . openF
 
 -- | find blank cells in a board,
