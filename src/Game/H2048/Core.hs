@@ -48,8 +48,7 @@ drawBoard board = do
      * finalize this line by printing out the horizontal "+--+--+..."
     -}
     putStrLn horizSeparator
-    -- TODO: things after ">>" can be moved into "drawRow"
-    mapM_ (\x -> drawRow x >> putStrLn horizSeparator) board
+    mapM_ drawRow board
     where
         cellWidth = length " 2048 "
         -- build up the separator: "+--+--+....+"
@@ -63,64 +62,56 @@ drawBoard board = do
             putChar '|'
             mapM_ (printf " %4d |") row
             putChar '\n'
+            putStrLn horizSeparator
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
 compactLine :: Line -> Line
 -- TODO: unit test for this function
-compactLine rawXs =
-    unpack packedResult
+compactLine =
+    bracketF pack unpack compactNonzeros
     where
-        -- TODO: use bracketF
-        -- pack rawXs so that it does not contain zeros
+        -- remove all zeros from a line
         pack = filter (/= 0)
         -- bring back dropped zeros
         unpack = padLeft 4
 
-        --        pack       unpack
-        -- rawXs ======> xs ========> result
-        xs = pack rawXs
-
-
-        -- for every two consecutive elements, try to merge
-        -- respecting the game rule.
-        (rLine, rBoard) = foldl update initState xs
-
-        -- TODO: consider appending '0' to xs to eliminiate the corner case.
-        -- i.e. packedResult
-
-        -- when `foldl` is done, take care of the final state
-        -- because there might be a cached element.
-        packedResult =
-            if isNothing rBoard
-               then rLine
-               else rLine ++ [fromJust rBoard]
-
-        initState :: (Line, Maybe Int)
-        initState = ([], Nothing)
-
-        -- when an element is put into the state,
-        -- it gets cached in the Maybe until the next element comes
-        -- we take care of two consecutive elements once the next element is available.
-        update :: (Line, Maybe Int) -> Int -> (Line, Maybe Int)
-        update (curLine, prevBoardM) curBoard =
-            case prevBoardM of
-              -- nothing in the Maybe, next element goes into it.
-              Nothing ->
-                  (curLine, Just curBoard)
-              -- something is cached in the Maybe, time to put elements into the result
-              Just prevBoard ->
-                  if prevBoard == curBoard
-                     -- can be merged
-                     then (curLine ++ [curBoard * 2], Nothing)
-                     -- cannot merge, `curBoard` kicks the previous value out of Maybe
-                     else (curLine ++ [prevBoard], Just curBoard)
-
         padLeft :: Int -> Line -> Line
-        padLeft l line =
-            if length line < l
-                then line ++ replicate (4 - length line) 0
-                else line
+        -- `replicate` works on negative numbers (returns []),
+        padLeft l line = line ++ replicate (l - length line) 0
+
+        -- compact a line that does not contain zeros
+        compactNonzeros xs = pack rLine
+            where
+                -- given that `0` cannot occur in `xs`,
+                -- we add this dummy `0` to kick things cached into `rLine`
+                -- after that, rLine might contain a trailing '0',
+                -- use `pack` to maintain the property of "mutated" `xs`.
+                (rLine, _) = foldl update initState (xs ++ [0])
+
+                initState = ([], Nothing)
+
+                -- for every two consecutive elements, try to merge
+                -- respecting the game rule.
+
+                -- when an element is put into the state,
+                -- it gets cached in the Maybe until the next element comes
+                -- we take care of two consecutive elements once the next element is available.
+                update :: (Line, Maybe Int) -> Int -> (Line, Maybe Int)
+                update (curLine, prevBoardM) curBoard =
+                    case prevBoardM of
+                      -- nothing in the Maybe, next element goes into it.
+                      Nothing ->
+                          (curLine, Just curBoard)
+                      -- something is cached in the Maybe, time to put elements into the result
+                      Just prevBoard ->
+                          if prevBoard == curBoard
+                              -- can be merged
+                              then (curLine ++ [curBoard * 2], Nothing)
+                              -- cannot merge, `curBoard` kicks the previous value out of Maybe
+                              else (curLine ++ [prevBoard], Just curBoard)
+
+
 
 -- | when player moves, give the next board before adding random cells into it
 --   returns the board after modification together with a boolean value.
@@ -128,14 +119,13 @@ compactLine rawXs =
 updateBoard :: Dir -> Board -> (Board, Bool)
 -- TOOD: - snd of the return value not used for now
 --       - should collect score
-updateBoard d cell = (cell', cell /= cell')
+updateBoard d board = (board', board /= board')
     where
-        -- TODO: I should better rename 'cell' -> `board`
-        cell' :: Board
+        board' :: Board
         -- transform boards so that
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
-        cell' = bracketF rTransL rTransR (map compactLine) cell
+        board' = bracketF rTransL rTransR (map compactLine) board
         -- rTrans for "a list of reversible transformations, that will be performed in order"
         rTrans :: [Board -> Board]
         rTrans =
@@ -153,7 +143,7 @@ updateBoard d cell = (cell', cell /= cell')
         rTransL = foldl (flip (.)) id rTrans
         rTransR = foldr       (.)  id rTrans
 
--- TODO: go home hlint you are drunk
+{-# ANN bracketF "HLint: ignore Redundant bracket" #-}
 -- | use first argument to convert data,
 --   third argument to perform operations,
 --   second argument to convert back
@@ -226,14 +216,14 @@ playGame b = do
 --   we have 90% probability of getting a cell of value 2,
 --   and 10% probability of getting a cell of value 4.
 initGame :: (RandomGen g) => RandT g IO Board
-initGame = do
-    -- TODO: try desugarize?
-
-    -- safely assume that the board has at least two empty cells
+initGame =
+    -- insert two cells and return the resulting board
+    -- here we can safely assume that the board has at least two empty cells
     -- so that we can never have Nothing on the LHS
-    (Just b1) <- insertNewCell initBoard
-    (Just b2) <- insertNewCell b1
-    return b2
+    liftM fromJust
+              (insertNewCell initBoard
+           >>= insertNewCell . fromJust)
+
 
 -- | try to insert a new cell randomly
 insertNewCell :: (RandomGen g) => Board -> RandT g IO (Maybe Board)
