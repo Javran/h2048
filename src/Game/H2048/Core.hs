@@ -71,7 +71,6 @@ drawBoard board = do
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
 compactLine :: Line -> Line
--- TODO: unit test for this function
 compactLine =
     bracketF pack unpack compactNonzeros
     where

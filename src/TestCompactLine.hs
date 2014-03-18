@@ -17,7 +17,7 @@ testcases =
     ]
 
 tests :: Test
-tests = TestList $ map (\(a,b) -> compactLine a ~=? b) testcases
+tests = TestList $ map (\(inp, expected) -> expected ~=? compactLine inp) testcases
 
 main :: IO ()
 main = do
