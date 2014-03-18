@@ -24,7 +24,11 @@ data Dir = DUp
          | DDown
          | DLeft
          | DRight
-         deriving (Enum, Eq, Ord, Show)
+         deriving (Enum, Bounded, Eq, Ord, Show)
+
+-- all possible values for a Bounded Enum
+universe :: (Bounded e, Enum e) => [e]
+universe = [minBound .. maxBound]
 
 -- | the initial board before a game started
 initBoard :: Board
@@ -111,8 +115,6 @@ compactLine =
                               -- cannot merge, `curBoard` kicks the previous value out of Maybe
                               else (curLine ++ [prevBoard], Just curBoard)
 
-
-
 -- | when player moves, give the next board before adding random cells into it
 --   returns the board after modification together with a boolean value.
 --   the boolean value is False only if this movement changes nothing.
@@ -195,9 +197,12 @@ playGame b = do
 
         return (c == 'q', newB)
 
-    -- TODO: logic flaw, "Game over" can never happen for now
+    -- TODO: not to combine impure IO with pure game logic.
+    -- the player is still alive if the next move is possible
+    let stillAlive = any (\d -> snd $ updateBoard d newB) universe
+
     unless quit
-        (if b == newB
+        (if stillAlive && b == newB
            then do
                liftIO $ putStrLn "Invalid move"
                playGame b
