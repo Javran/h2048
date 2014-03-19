@@ -2,6 +2,7 @@ module Game.H2048.Core
 -- TODO: minimize export
 where
 
+import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Random
@@ -77,19 +78,25 @@ drawBoard board = do
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
-compactLine :: Line -> Line
-compactLine = bracketF
-                  (filter (/=0))           -- remove zeros before processing
-                  (take 4 . (++ repeat 0)) -- bring back zeros after processomg
-                  (fst . merge)            -- try to merge
+compactLine :: Line -> (Line, Int)
+              -- remove zeros
+compactLine =     filter (/=0)
+              -- do merge and collect score
+              >>> merge
+              -- restore zeros, on the "fst" part
+              >>> first (take 4 . (++ repeat 0))
     where
         merge :: [Int] -> ([Int], Int)
         merge (x:y:xs) =
             if x == y
                 -- only place where score are collected.
                 then let (xs', score') = merge xs
+                     -- try to merge first two elements,
+                     -- and process rest of it.
                      in ((x+y) : xs', x+y+score')
                 else let (xs', score') = merge (y:xs)
+                     -- just skip the first one,
+                     -- and process rest of it.
                      in (x:xs', score')
         merge r = (r, 0)
 
@@ -105,7 +112,7 @@ updateBoard d board = (board', board /= board')
         -- transform boards so that
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
-        board' = bracketF rTransL rTransR (map compactLine) board
+        board' = bracketF rTransL rTransR (map (fst . compactLine)) board
         -- rTrans for "a list of reversible transformations, that will be performed in order"
         rTrans :: [Board -> Board]
         rTrans =
