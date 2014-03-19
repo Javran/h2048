@@ -25,7 +25,6 @@ type Line  =  [Int]
 data BoardResult = BoardResult
     { brBoard    :: Board  -- ^ new board
     , brScore    :: Int    -- ^ score collected in this update
-    , brNextDirs :: [Dir]  -- ^ all possible next moves
     } deriving (Eq, Show)
 
 -- | the move direction
@@ -104,16 +103,17 @@ compactLine =     filter (/=0)
 -- | when player moves, give the next board before adding random cells into it
 --   returns the board after modification together with a boolean value.
 --   the boolean value is False only if this movement changes nothing.
-updateBoard :: Dir -> Board -> (Board, Bool)
--- TOOD: - snd of the return value not used for now
---       - should collect score
-updateBoard d board = (board', board /= board')
+updateBoard :: Dir -> Board -> Maybe BoardResult
+-- TODO: use writer monad?
+updateBoard d board = if board /= board'
+                          then Just $ BoardResult board' score
+                          else Nothing
     where
         board' :: Board
         -- transform boards so that
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
-        board' = bracketF rTransL rTransR (map (fst . compactLine)) board
+        (board',score) = rTransL >>> map compactLine >>> unzip >>> first rTransR >>> second sum $ board
         -- rTrans for "a list of reversible transformations, that will be performed in order"
         rTrans :: [Board -> Board]
         rTrans =
@@ -155,66 +155,66 @@ blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
         -- tag cells with column num
         colTagged = map (zip [0..]) b
 
+-- | the board is dead if there is no more valid move
+isDead :: Board -> Bool
+isDead b = all (\d -> isNothing $ updateBoard d b) universe
+
 -- | play game on a given board until user quits or game ends
-playGame :: (RandomGen g) => Board -> RandT g IO ()
-playGame b = do
-    (quit,newB) <- liftIO $ do
-        drawBoard b
-        hFlush stdout
+playGame :: (RandomGen g) => (Board, Int) -> RandT g IO ()
+playGame (b,score) =
+    if isDead b
+       then (liftIO $ drawBoard b >> hFlush stdout >>  putStrLn "Game over (no more move)")
+       else (do
+                (quit,updResult,invalidKey) <- liftIO $ do
+                    drawBoard b
+                    _ <- printf "Current score: %d\n" score
+                    hFlush stdout
+                    c <- getChar
 
-        c <- getChar
+                    putStrLn ""
+                    hFlush stdout
 
-        putStrLn ""
-        hFlush stdout
+                    -- TODO: customizable
+                    key <- case c of
+                             'q' -> return Nothing
+                             'i' -> putStrLn "Up" >> return (Just DUp)
+                             'k' -> putStrLn "Down" >> return (Just DDown)
+                             'j' -> putStrLn "Left" >> return (Just DLeft)
+                             'l' -> putStrLn "Right" >> return (Just DRight)
+                             _ -> putStrLn "'i'/'k'/'j'/'l' to move, 'q' to quit." >> return Nothing
 
-        -- TODO: customizable
-        key <- case c of
-          'q' -> return Nothing
-          'i' -> putStrLn "Up" >> return (Just DUp)
-          'k' -> putStrLn "Down" >> return (Just DDown)
-          'j' -> putStrLn "Left" >> return (Just DLeft)
-          'l' -> putStrLn "Right" >> return (Just DRight)
-          _ -> putStrLn "'i'/'k'/'j'/'l' to move, 'q' to quit." >> return Nothing
+                    return (c == 'q', maybe Nothing (`updateBoard` b) key, c `notElem` "qijkl")
 
-        let newB =
-                if isJust key
-                    then fst $ updateBoard (fromJust key) b
-                    else b
-
-        return (c == 'q', newB)
-
-    -- TODO: not to combine impure IO with pure game logic.
-    -- the player is still alive if the next move is possible
-    let stillAlive = any (\d -> snd $ updateBoard d newB) universe
-
-    unless quit
-        (if stillAlive && b == newB
-           then do
-               liftIO $ putStrLn "Invalid move"
-               playGame b
-           else do
-               maybeNewB <- insertNewCell newB
-               maybe
-                   -- no place to insert a new cell, game over
-                   (liftIO $ putStrLn "Game over")
-                   -- the player alives after this move
-                   playGame
-                   maybeNewB
-        )
+                -- cannot proceed for invalid keys & invalid moves
+                if (not quit && (invalidKey || isNothing updResult))
+                    then (liftIO (putStrLn "Invalid move") >> playGame (b,score))
+                    else
+                        -- TODO: not to combine impure IO with pure game logic.
+                        -- the player is still alive if the next move is possible
+                        unless quit
+                           (
+                            do
+                                maybeNewB <- insertNewCell (brBoard (fromJust updResult))
+                                maybe
+                                    -- no place to insert a new cell, game over
+                                    -- not reachable code, because if updResult
+                                    -- runs successfully, there must be an empty cell
+                                    (liftIO $ putStrLn "Game over (full)")
+                                    -- the player alives after this move
+                                    (\newB -> playGame (newB, score + brScore (fromJust updResult)))
+                                    maybeNewB
+                           ))
 
 -- | initialize the board by puting two cells randomly
 --   into the board. According to the original game,
 --   we have 90% probability of getting a cell of value 2,
 --   and 10% probability of getting a cell of value 4.
-initGame :: (RandomGen g) => RandT g IO Board
+initGame :: (RandomGen g) => RandT g IO (Board, Int)
 initGame =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
     -- so that we can never have Nothing on the LHS
-    liftM fromJust
-              (insertNewCell initBoard
-           >>= insertNewCell . fromJust)
-
+    liftM ( (\x -> (x,0)) . fromJust) (insertNewCell initBoard >>= (insertNewCell . fromJust))
 
 -- | try to insert a new cell randomly
 insertNewCell :: (RandomGen g) => Board -> RandT g IO (Maybe Board)
