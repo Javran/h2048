@@ -19,6 +19,13 @@ type Board = [[Int]]
 --   one column / row in the board
 type Line  =  [Int]
 
+-- | result after a successful 'updateBoard'
+data BoardResult = BoardResult
+    { brBoard    :: Board  -- ^ new board
+    , brScore    :: Int    -- ^ score collected in this update
+    , brNextDirs :: [Dir]  -- ^ all possible next moves
+    } deriving (Eq, Show)
+
 -- | the move direction
 data Dir = DUp
          | DDown
@@ -74,13 +81,17 @@ compactLine :: Line -> Line
 compactLine = bracketF
                   (filter (/=0))           -- remove zeros before processing
                   (take 4 . (++ repeat 0)) -- bring back zeros after processomg
-                  merge                    -- try to merge
+                  (fst . merge)            -- try to merge
     where
+        merge :: [Int] -> ([Int], Int)
         merge (x:y:xs) =
             if x == y
-                then (x+y) : merge xs      -- merge if first two equals
-                else x : merge (y:xs)      -- otherwise keep the first one
-        merge r = r
+                -- only place where score are collected.
+                then let (xs', score') = merge xs
+                     in ((x+y) : xs', x+y+score')
+                else let (xs', score') = merge (y:xs)
+                     in (x:xs', score')
+        merge r = (r, 0)
 
 -- | when player moves, give the next board before adding random cells into it
 --   returns the board after modification together with a boolean value.
