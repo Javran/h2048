@@ -100,9 +100,9 @@ compactLine =     filter (/=0)
                      in (x:xs', score')
         merge r = (r, 0)
 
--- | when player moves, give the next board before adding random cells into it
---   returns the board after modification together with a boolean value.
---   the boolean value is False only if this movement changes nothing.
+-- | update the board taking a direction,
+--   a "BoardResult" is returned on success,
+--   if this update does nothing, that means a failure (Nothing)
 updateBoard :: Dir -> Board -> Maybe BoardResult
 -- TODO: use writer monad?
 updateBoard d board = if board /= board'
@@ -155,55 +155,74 @@ blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
         -- tag cells with column num
         colTagged = map (zip [0..]) b
 
--- | the board is dead if there is no more valid move
+-- | the board is dead if there is no valid move
 isDead :: Board -> Bool
 isDead b = all (\d -> isNothing $ updateBoard d b) universe
 
+-- TODO: move CLI logic to somewhere else
+
 -- | play game on a given board until user quits or game ends
 playGame :: (RandomGen g) => (Board, Int) -> RandT g IO ()
-playGame (b,score) =
+playGame (b,score) = do
+        -- when game over
+    let gameOver (b',score') = do
+            drawBoard b'
+            putStrLn "Game over"
+            _ <- printf "Final score: %d\n" score'
+            hFlush stdout
+        -- handle user move, print the board together with current score,
+        -- return the next user move:
+        -- * return Nothing only if user has pressed "q"
+        -- * return Just <key>   if one of "ijkl" is pressed
+        handleUserMove = do
+            drawBoard b
+            _ <- printf "Current score: %d\n" score
+            hFlush stdout
+            c <- getChar
+            putStrLn ""
+            hFlush stdout
+
+            -- TODO: customizable
+            maybeKey <- case c of
+                     'q' -> return Nothing
+                     'i' -> putStrLn "Up"    >> return (Just DUp)
+                     'k' -> putStrLn "Down"  >> return (Just DDown)
+                     'j' -> putStrLn "Left"  >> return (Just DLeft)
+                     'l' -> putStrLn "Right" >> return (Just DRight)
+                     _ -> do
+                             putStrLn "'i'/'k'/'j'/'l' to move, 'q' to quit."
+                             return $ error "Unreachable code: unhandled invalid user input"
+
+            if c `elem` "qijkl"
+               -- user will not be on this branch
+               -- if an invalid key is pressed
+               then return maybeKey
+               -- user will be trapped in "handleUserMove" unless
+               -- a valid key is given. So `return undefined` can never be reached
+               else handleUserMove
+        handleGame =
+            maybe
+                -- user quit
+                (return ())
+                -- user next move
+                  -- 1. update the board according to user move
+                ((`updateBoard` b) >>>
+                  -- 2. the update might succeed / fail
+                  maybe
+                         -- 2(a). the move is invalid, try again
+                         (liftIO (putStrLn "Invalid move") >> playGame (b,score))
+                         -- 2(b). on success, insert new cell
+                         (\ result -> do
+                              -- should always succeed
+                              -- because when a successful move is done
+                              -- there is at least one empty cell in the board
+                              (Just newB) <- insertNewCell (brBoard result)
+                              -- keep going, accumulate score
+                              playGame (newB, score + brScore result)))
+
     if isDead b
-       then (liftIO $ drawBoard b >> hFlush stdout >>  putStrLn "Game over (no more move)")
-       else (do
-                (quit,updResult,invalidKey) <- liftIO $ do
-                    drawBoard b
-                    _ <- printf "Current score: %d\n" score
-                    hFlush stdout
-                    c <- getChar
-
-                    putStrLn ""
-                    hFlush stdout
-
-                    -- TODO: customizable
-                    key <- case c of
-                             'q' -> return Nothing
-                             'i' -> putStrLn "Up" >> return (Just DUp)
-                             'k' -> putStrLn "Down" >> return (Just DDown)
-                             'j' -> putStrLn "Left" >> return (Just DLeft)
-                             'l' -> putStrLn "Right" >> return (Just DRight)
-                             _ -> putStrLn "'i'/'k'/'j'/'l' to move, 'q' to quit." >> return Nothing
-
-                    return (c == 'q', maybe Nothing (`updateBoard` b) key, c `notElem` "qijkl")
-
-                -- cannot proceed for invalid keys & invalid moves
-                if (not quit && (invalidKey || isNothing updResult))
-                    then (liftIO (putStrLn "Invalid move") >> playGame (b,score))
-                    else
-                        -- TODO: not to combine impure IO with pure game logic.
-                        -- the player is still alive if the next move is possible
-                        unless quit
-                           (
-                            do
-                                maybeNewB <- insertNewCell (brBoard (fromJust updResult))
-                                maybe
-                                    -- no place to insert a new cell, game over
-                                    -- not reachable code, because if updResult
-                                    -- runs successfully, there must be an empty cell
-                                    (liftIO $ putStrLn "Game over (full)")
-                                    -- the player alives after this move
-                                    (\newB -> playGame (newB, score + brScore (fromJust updResult)))
-                                    maybeNewB
-                           ))
+       then liftIO $ gameOver (b,score)
+       else liftIO handleUserMove >>= handleGame
 
 -- | initialize the board by puting two cells randomly
 --   into the board. According to the original game,
