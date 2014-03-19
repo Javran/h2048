@@ -3,6 +3,7 @@ module Game.H2048.Core
 where
 
 import Control.Arrow
+-- import Control.Lens hiding (universe)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Random
@@ -232,6 +233,7 @@ insertNewCell b = do
 
 -- | replace the i-th element in a list
 replace :: Int -> a -> [a] -> [a]
+-- replace pos v xs = xs & (ix pos) .~ v
 replace pos v xs = as ++ v : bs
     where
         (as, _:bs) = splitAt pos xs
