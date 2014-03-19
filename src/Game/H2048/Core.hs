@@ -228,7 +228,7 @@ playGame (b,score) = do
 --   into the board. According to the original game,
 --   we have 90% probability of getting a cell of value 2,
 --   and 10% probability of getting a cell of value 4.
-initGame :: (RandomGen g) => RandT g IO (Board, Int)
+initGame :: (MonadRandom r) => r (Board, Int)
 initGame =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
@@ -236,7 +236,7 @@ initGame =
     liftM ( (\x -> (x,0)) . fromJust) (insertNewCell initBoard >>= (insertNewCell . fromJust))
 
 -- | try to insert a new cell randomly
-insertNewCell :: (RandomGen g) => Board -> RandT g IO (Maybe Board)
+insertNewCell :: (MonadRandom r) => Board -> r (Maybe Board)
 insertNewCell b = do
     let availableCells = blankCells b
 
