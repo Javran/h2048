@@ -1,4 +1,7 @@
 module Game.H2048.UI.Simple
+    ( drawBoard
+    , playGame
+    )
 where
 
 import Game.H2048.Core
