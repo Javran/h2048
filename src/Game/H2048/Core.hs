@@ -1,9 +1,19 @@
 module Game.H2048.Core
--- TODO: minimize export
+    ( Board       -- make sure board cannot be crafted from outside
+    , Line
+    , Dir (..)
+    , BoardResult (..)
+    , isDead
+    , compactLine
+    , initBoard
+    , initGame
+    , updateBoard
+    , insertNewCell
+    , generateNewCell
+    )
 where
 
 import Control.Arrow
--- import Control.Lens hiding (universe)
 import Control.Monad
 import Control.Monad.Random
 import Data.List
@@ -148,4 +158,3 @@ generateNewCell :: (MonadRandom r) => r Int
 generateNewCell = do
     r <- getRandom
     return $ if r < (0.9 :: Float) then 2 else 4
-
