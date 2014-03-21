@@ -6,6 +6,7 @@ import Control.Monad.Random
 import System.IO
 
 import Game.H2048.Core
+import Game.H2048.UI.Simple
 
 main :: IO ()
 main = do
