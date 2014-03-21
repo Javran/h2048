@@ -9,6 +9,8 @@ import Control.Monad.Random
 import Data.List
 import Data.Maybe
 
+import Game.H2048.Utils
+
 -- | represent a 4x4 board for Game 2048
 --   each element should be either zero or 2^i
 --   where 1 <= i <= 11.
@@ -30,10 +32,6 @@ data Dir = DUp
          | DLeft
          | DRight
          deriving (Enum, Bounded, Eq, Ord, Show)
-
--- | all possible values for a Bounded Enum
-universe :: (Bounded e, Enum e) => [e]
-universe = [minBound .. maxBound]
 
 -- | the initial board before a game started
 initBoard :: Board
@@ -99,16 +97,6 @@ updateBoard d board = if board /= board'
         rTransL = foldl (flip (.)) id rTrans
         rTransR = foldr       (.)  id rTrans
 
-{-# ANN bracketF "HLint: ignore Redundant bracket" #-}
--- | use first argument to convert data,
---   third argument to perform operations,
---   second argument to convert back
-bracketF :: (c -> a) -- ^ open bracket
-         -> (b -> d) -- ^ close bracket
-         -> (a -> b) -- ^ what's in the bracket
-         -> (c -> d) -- ^ the resulting function
-bracketF openF closeF f = closeF . f . openF
-
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
 blankCells :: Board -> [(Int, Int)]
@@ -150,9 +138,8 @@ insertNewCell b = do
            -- randomly pick up an available cell by choosing index
            choice <- getRandomR (0, length availableCells - 1)
            let (row,col) = availableCells !! choice
-           r <- getRandom
-           let value = if r < (0.9 :: Float) then 2 else 4
-           return $ Just (replace row (replace col value (b !! row)) b)
+           value <- generateNewCell
+           return $ Just $ (inPos row . inPos col) (const value) b
 
 -- | generate a new cell according to the game rule
 --   we have 90% probability of getting a cell of value 2,
@@ -162,9 +149,3 @@ generateNewCell = do
     r <- getRandom
     return $ if r < (0.9 :: Float) then 2 else 4
 
--- | replace the i-th element in a list
-replace :: Int -> a -> [a] -> [a]
--- replace pos v xs = xs & (ix pos) .~ v
-replace pos v xs = as ++ v : bs
-    where
-        (as, _:bs) = splitAt pos xs
