@@ -41,10 +41,10 @@ executable h2048
 
   default-language:    Haskell2010
 
-Test-Suite test-compactLine
+Test-Suite test
   hs-source-dirs:      src
   type:                exitcode-stdio-1.0
-  main-is:             TestCompactLine.hs
+  main-is:             Test.hs
   build-depends:       base,
                        MonadRandom,
                        transformers,
