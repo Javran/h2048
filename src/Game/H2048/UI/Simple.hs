@@ -16,6 +16,10 @@ import System.IO
 
 -- a simple UI implemented by outputing strings
 
+-- | simple help string
+helpString :: String
+helpString =  "'i'/'k'/'j'/'l' to move, 'q' to quit."
+
 -- | pretty print the board to stdout
 drawBoard :: Board -> IO ()
 drawBoard board = do
@@ -42,11 +46,16 @@ drawBoard board = do
             intercalate "+" (replicate 4 (replicate cellWidth '-'))
         horizSeparator = "+" ++ horizSeparator' ++ "+"
 
+        -- pretty string for a cell (without border)
+        prettyCell c = if c == 0
+                           then replicate cellWidth ' '
+                           else printf " %4d " c
+
         drawRow :: [Int] -> IO ()
         drawRow row = do
             -- prints "| <cell1> | <cell2> | ... |"
             putChar '|'
-            mapM_ (printf " %4d |") row
+            mapM_ (prettyCell >>> putStr >>> (>> putChar '|') ) row
             putChar '\n'
             putStrLn horizSeparator
 
@@ -81,7 +90,7 @@ playGame (b,score) = do
                      'j' -> putStrLn "Left"  >> return (Just DLeft)
                      'l' -> putStrLn "Right" >> return (Just DRight)
                      _ -> do
-                             putStrLn "'i'/'k'/'j'/'l' to move, 'q' to quit."
+                             putStrLn helpString
                              return $ error "Unreachable code: unhandled invalid user input"
 
             if c `elem` "qijkl"
@@ -127,6 +136,8 @@ mainSimple = do
     -- no buffering - don't wait for the "enter"
     hSetBuffering stdin NoBuffering
     g <- newStdGen
+    -- in case someone don't read the README
+    putStrLn helpString
     -- initialize game based on the random seed
     _ <- evalRandT (initGameBoard >>= playGame) g
     -- restoring buffering setting
