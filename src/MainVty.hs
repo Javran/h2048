@@ -1,5 +1,7 @@
 module Main
 where
 
+import Game.H2048.UI.Vty
+
 main :: IO ()
-main = error "not yet implemented"
+main = mainVty

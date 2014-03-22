@@ -58,6 +58,9 @@ executable h2048-vty
   ghc-options:         -Wall -O2
   build-depends:       base,
                        h2048,
+                       text,
+                       vty,
+                       vty-ui,
                        transformers,
                        mtl,
                        MonadRandom
