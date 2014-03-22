@@ -14,4 +14,4 @@ main = do
     hSetBuffering stdin NoBuffering
     g <- newStdGen
     -- initialize game based on the random seed
-    void $ evalRandT (initGame >>= playGame) g
+    void $ evalRandT (initGameBoard >>= playGame) g

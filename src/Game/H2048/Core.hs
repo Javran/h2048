@@ -1,12 +1,12 @@
 module Game.H2048.Core
-    ( Board       -- make sure board cannot be crafted from outside
+    ( Board
     , Line
     , Dir (..)
     , BoardResult (..)
     , isDead
     , compactLine
     , initBoard
-    , initGame
+    , initGameBoard
     , updateBoard
     , insertNewCell
     , generateNewCell
@@ -15,6 +15,7 @@ where
 
 import Control.Arrow
 import Control.Monad
+import Control.Monad.Writer
 import Control.Monad.Random
 import Data.List
 import Data.Maybe
@@ -45,51 +46,58 @@ data Dir = DUp
 
 -- | the initial board before a game started
 initBoard :: Board
-initBoard = replicate 4 $ replicate 4 0
+initBoard = (replicate 4 . replicate 4) 0
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
-compactLine :: Line -> (Line, Int)
-              -- remove zeros
-compactLine =     filter (/=0)
-              -- do merge and collect score
-              >>> merge
-              -- restore zeros, on the "fst" part
-              >>> first (take 4 . (++ repeat 0))
+compactLine :: Line -> Writer (Sum Int) Line
+compactLine = runKleisli
+                    -- remove zeros
+                  ( filter (/=0)
+                    -- do merge and collect score
+                ^>> Kleisli merge
+                    -- restore zeros, on the "fst" part
+                >>^ take 4 . (++ repeat 0))
+
     where
-        merge :: [Int] -> ([Int], Int)
+        merge :: [Int] -> Writer (Sum Int) [Int]
         merge (x:y:xs) =
             if x == y
                 -- only place where score are collected.
-                then let (xs', score') = merge xs
-                     -- try to merge first two elements,
-                     -- and process rest of it.
-                     in ((x+y) : xs', x+y+score')
-                else let (xs', score') = merge (y:xs)
-                     -- just skip the first one,
-                     -- and process rest of it.
-                     in (x:xs', score')
-        merge r = (r, 0)
+                then do
+                    -- try to merge first two elements,
+                    -- and process rest of it.
+                    xs' <- merge xs
+                    tell . Sum $ x + y
+                    return $ (x+y) : xs'
+                else do
+                    -- just skip the first one,
+                    -- and process rest of it.
+                    xs' <- merge (y:xs)
+                    return $ x : xs'
+        merge r = return r
 
 -- | update the board taking a direction,
 --   a "BoardResult" is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
 updateBoard :: Dir -> Board -> Maybe BoardResult
--- TODO: use writer monad?
 updateBoard d board = if board /= board'
-                          then Just $ BoardResult board' score
+                          then Just $ BoardResult board' (getSum score)
                           else Nothing
     where
         board' :: Board
         -- transform boards so that
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
-        (board',score) =     rTransL         -- transform to a "gravitize to the left" problem
-                         >>> map compactLine -- gravitize to the left
-                         >>> unzip           -- split result into Board and score collected
-                         >>> first rTransR   -- transform back
-                         >>> second sum      -- get all scores earned in this turn
-                           $ board
+        (board',score) = runWriter $
+                         runKleisli
+                               -- transform to a "gravitize to the left" problem
+                             ( rTransL
+                               -- gravitize to the left
+                           ^>> Kleisli (mapM compactLine)
+                               -- transform back
+                           >>^ rTransR) board
+
         -- rTrans for "a list of reversible transformations, that will be performed in order"
         rTrans :: [Board -> Board]
         rTrans =
@@ -128,8 +136,8 @@ isDead b = all (\d -> isNothing $ updateBoard d b) universe
 -- | initialize the board by puting two cells randomly
 --   into the board.
 --   See "generateNewCell" for the cell generating rule.
-initGame :: (MonadRandom r) => r (Board, Int)
-initGame =
+initGameBoard :: (MonadRandom r) => r (Board, Int)
+initGameBoard =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
     -- so that we can never have Nothing on the LHS

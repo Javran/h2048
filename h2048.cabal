@@ -21,6 +21,7 @@ library
   exposed-modules:     Game.H2048.Core
   build-depends:       base,
                        transformers,
+                       mtl,
                        MonadRandom
 
   ghc-options:         -Wall
@@ -35,6 +36,7 @@ executable h2048
   build-depends:       base,
                        h2048,
                        transformers,
+                       mtl,
                        MonadRandom
 
   default-language:    Haskell2010
@@ -46,6 +48,7 @@ Test-Suite test-compactLine
   build-depends:       base,
                        MonadRandom,
                        transformers,
+                       mtl,
                        HUnit
 
   default-language:    Haskell2010

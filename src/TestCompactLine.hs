@@ -1,11 +1,13 @@
 import Test.HUnit
 
+import Control.Arrow
 import Control.Monad
+import Control.Monad.Writer
 import System.Exit
 
 import Game.H2048.Core
 
-testcases :: [ (([Int], Int) , [Int]) ]
+testcases :: [ ((Line, Int) , Line) ]
 testcases =
     --  < expected  >   < input >
     [ ( ([0,0,0,0],0),  [0,0,0,0] )
@@ -18,7 +20,11 @@ testcases =
     ]
 
 tests :: Test
-tests = TestList $ map (\(expected, inp) -> expected ~=? compactLine inp) testcases
+tests = TestList $ map
+        (\(expected, inp) ->
+             expected ~=?
+             second getSum (runWriter (compactLine inp)))
+        testcases
 
 main :: IO ()
 main = do
