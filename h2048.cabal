@@ -3,7 +3,7 @@
 
 name:                h2048
 version:             0.1.0.0
-synopsis:            a haskell implementation of "2048"
+synopsis:            a haskell implementation of Game 2048
 -- description:
 homepage:            https://github.com/Javran/h2048
 license:             MIT

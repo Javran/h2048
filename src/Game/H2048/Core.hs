@@ -2,8 +2,9 @@ module Game.H2048.Core
     ( Board
     , Line
     , Dir (..)
-    , BoardResult (..)
-    , isDead
+    , BoardUpdated (..)
+    , GameState (..)
+    , gameState
     , compactLine
     , initBoard
     , initGameBoard
@@ -32,10 +33,16 @@ type Board = [[Int]]
 type Line  =  [Int]
 
 -- | result after a successful 'updateBoard'
-data BoardResult = BoardResult
+data BoardUpdated = BoardUpdated
     { brBoard    :: Board  -- ^ new board
     , brScore    :: Int    -- ^ score collected in this update
     } deriving (Eq, Show)
+
+-- | current game state
+data GameState = Win
+               | Lose
+               | Alive
+                 deriving (Enum, Eq, Show)
 
 -- | the move direction
 data Dir = DUp
@@ -78,11 +85,11 @@ compactLine = runKleisli
         merge r = return r
 
 -- | update the board taking a direction,
---   a "BoardResult" is returned on success,
+--   a "BoardUpdated" is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
-updateBoard :: Dir -> Board -> Maybe BoardResult
+updateBoard :: Dir -> Board -> Maybe BoardUpdated
 updateBoard d board = if board /= board'
-                          then Just $ BoardResult board' (getSum score)
+                          then Just $ BoardUpdated board' (getSum score)
                           else Nothing
     where
         board' :: Board
@@ -129,9 +136,18 @@ blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
         -- tag cells with column num
         colTagged = map (zip [0..]) b
 
--- | the board is dead if there is no valid move
-isDead :: Board -> Bool
-isDead b = all (\d -> isNothing $ updateBoard d b) universe
+-- | return current game state.
+--   "Win" if any cell is equal to or greater than 2048
+--   or "Lose" if we can move no further
+--   otherwise, "Alive"
+gameState :: Board -> GameState
+gameState b
+    | any (>= 2048) . concat $ b
+        = Win
+    | all (isNothing . ( `updateBoard` b)) universe
+        = Lose
+    | otherwise
+        = Alive
 
 -- | initialize the board by puting two cells randomly
 --   into the board.

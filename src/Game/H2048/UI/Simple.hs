@@ -1,6 +1,7 @@
 module Game.H2048.UI.Simple
     ( drawBoard
     , playGame
+    , mainSimple
     )
 where
 
@@ -53,9 +54,11 @@ drawBoard board = do
 playGame :: (RandomGen g) => (Board, Int) -> RandT g IO ()
 playGame (b,score) = do
         -- when game over
-    let gameOver (b',score') = do
+    let endGame (b',score') win = do
             drawBoard b'
-            putStrLn "Game over"
+            putStrLn $ if win
+                           then "You win"
+                           else "Game over"
             _ <- printf "Final score: %d\n" score'
             hFlush stdout
         -- handle user move, print the board together with current score,
@@ -86,7 +89,8 @@ playGame (b,score) = do
                -- if an invalid key is pressed
                then return maybeKey
                -- user will be trapped in "handleUserMove" unless
-               -- a valid key is given. So `return undefined` can never be reached
+               -- a valid key is given. So the error above (the wildcard case)
+               -- can never be reached
                else handleUserMove
         handleGame =
             maybe
@@ -108,6 +112,22 @@ playGame (b,score) = do
                               -- keep going, accumulate score
                               playGame (newB, score + brScore result)))
 
-    if isDead b
-       then liftIO $ gameOver (b,score)
-       else liftIO handleUserMove >>= handleGame
+    case gameState b of
+      Win ->
+          liftIO $ endGame (b,score) True
+      Lose ->
+          liftIO $ endGame (b,score) False
+      Alive ->
+          liftIO handleUserMove >>= handleGame
+
+-- | the entry of Simple UI
+mainSimple :: IO ()
+mainSimple = do
+    bfMod <- hGetBuffering stdin
+    -- no buffering - don't wait for the "enter"
+    hSetBuffering stdin NoBuffering
+    g <- newStdGen
+    -- initialize game based on the random seed
+    _ <- evalRandT (initGameBoard >>= playGame) g
+    -- restoring buffering setting
+    hSetBuffering stdin bfMod
