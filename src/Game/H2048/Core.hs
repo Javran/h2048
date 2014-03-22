@@ -25,7 +25,7 @@ import Game.H2048.Utils
 
 -- | represent a 4x4 board for Game 2048
 --   each element should be either zero or 2^i
---   where 1 <= i <= 11.
+--   where i >= 1.
 type Board = [[Int]]
 
 -- | a list of 4 elements, stands for
@@ -38,13 +38,13 @@ data BoardUpdated = BoardUpdated
     , brScore    :: Int    -- ^ score collected in this update
     } deriving (Eq, Show)
 
--- | current game state
+-- | current game state, see also 'gameState'
 data GameState = Win
                | Lose
                | Alive
                  deriving (Enum, Eq, Show)
 
--- | the move direction
+-- | move direction
 data Dir = DUp
          | DDown
          | DLeft
@@ -85,7 +85,7 @@ compactLine = runKleisli
         merge r = return r
 
 -- | update the board taking a direction,
---   a "BoardUpdated" is returned on success,
+--   a 'BoardUpdated' is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
 updateBoard :: Dir -> Board -> Maybe BoardUpdated
 updateBoard d board = if board /= board'
@@ -137,9 +137,9 @@ blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
         colTagged = map (zip [0..]) b
 
 -- | return current game state.
---   "Win" if any cell is equal to or greater than 2048
---   or "Lose" if we can move no further
---   otherwise, "Alive"
+--   'Win' if any cell is equal to or greater than 2048
+--   or 'Lose' if we can move no further
+--   otherwise, 'Alive'.
 gameState :: Board -> GameState
 gameState b
     | any (>= 2048) . concat $ b
@@ -151,7 +151,7 @@ gameState b
 
 -- | initialize the board by puting two cells randomly
 --   into the board.
---   See "generateNewCell" for the cell generating rule.
+--   See 'generateNewCell' for the cell generating rule.
 initGameBoard :: (MonadRandom r) => r (Board, Int)
 initGameBoard =
     -- insert two cells and return the resulting board
