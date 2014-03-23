@@ -7,13 +7,9 @@ where
 
 import Graphics.Vty.Widgets.All
 import Graphics.Vty
--- import Graphics.Vty.Attributes
--- import Graphics.Vty.LLInput
 import qualified Data.Text as T
 import Control.Monad
 import Control.Monad.Random
--- import Control.Concurrent
--- import Data.Monoid
 import Data.Foldable (foldMap)
 import Data.IORef
 import Data.Maybe
@@ -114,7 +110,7 @@ mainVty = do
         cellSpec = ColumnSpec (ColFixed cellLen)
                               (Just AlignRight)
                               (Just (padRight 1))
-        helpString = "'i'/'k'/'j'/'l' to move, 'q' to quit."
+        helpString = "'i'/'k'/'j'/'l'/arrow keys to move, 'q' to quit."
 
     -- build up UI
     tbl <- newTable (replicate 4 cellSpec) BorderFull
@@ -148,18 +144,27 @@ mainVty = do
     c <- newCollection
     _ <- addToCollection c ui fg
 
+    let doUpdate = newDirGameUpdate playStateR items pScore
     pScore `onKeyPressed` \_ key _ ->
         case key of
           KASCII 'q' ->
               shutdownUi >> return True
           KASCII 'i' ->
-              newDirGameUpdate playStateR items pScore DUp
+              doUpdate DUp
+          KUp ->
+              doUpdate DUp
           KASCII 'k' ->
-              newDirGameUpdate playStateR items pScore DDown
+              doUpdate DDown
+          KDown ->
+              doUpdate DDown
           KASCII 'j' ->
-              newDirGameUpdate playStateR items pScore DLeft
+              doUpdate DLeft
+          KLeft ->
+              doUpdate DLeft
           KASCII 'l' ->
-              newDirGameUpdate playStateR items pScore DRight
+              doUpdate DRight
+          KRight ->
+              doUpdate DRight
           _ ->
               return False
 
