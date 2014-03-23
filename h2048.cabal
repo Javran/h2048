@@ -2,7 +2,7 @@
 --  see http://haskell.org/cabal/users-guide/
 
 name:                h2048
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            a haskell implementation of Game 2048
 description:         a haskell implementation of Game 2048,
                      based on <https://github.com/gabrielecirulli/2048>.
@@ -34,7 +34,7 @@ library
   build-depends:       base >= 4 && < 5,
                        transformers >= 0 && < 1,
                        mtl >= 2 && < 3,
-                       MonadRandom
+                       MonadRandom >= 0 && < 1
 
   ghc-options:         -Wall
   default-language:    Haskell2010
@@ -44,7 +44,6 @@ executable h2048-simple
   main-is:             MainSimple.hs
   ghc-options:         -Wall
   build-depends:       base >= 4 && < 5,
-                       h2048,
                        transformers >= 0 && < 1,
                        mtl >= 2 && < 3,
                        MonadRandom >= 0 && < 1
@@ -59,7 +58,6 @@ executable h2048-vty
   main-is:             MainVty.hs
   ghc-options:         -Wall
   build-depends:       base >= 4 && < 5,
-                       h2048,
                        text >= 1 && < 2,
                        vty >= 4 && < 5,
                        vty-ui >= 1 && < 2,
