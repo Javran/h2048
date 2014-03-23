@@ -33,7 +33,7 @@ Or alternatively:
     cabal run h2048-vty
 
 If you have trouble building the `vty` CLI version,
-you can try to turn off feature `vty` it and use `h2028-simple`:
+you can try to turn off feature `vty` and use `h2028-simple`:
 
     cabal configure --flag="-vty"
     cabal build
