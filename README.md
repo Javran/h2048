@@ -1,8 +1,18 @@
 # h2048
 
-a haskell implementation of "2048"
+a haskell implementation of Game 2048
 
 Based on [2048](https://github.com/gabrielecirulli/2048)
+
+# Screenshots
+
+## Simple CLI version
+
+![](https://github.com/Javran/h2048/releases/download/0.1.0.0/h2048-simple.jpg)
+
+## vty CLI version
+
+![](https://github.com/Javran/h2048/releases/download/0.1.0.0/h2048-vty.jpg)
 
 ## Build and run
 
