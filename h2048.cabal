@@ -28,26 +28,26 @@ flag vty
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Game.H2048.Core,
-                       Game.H2048.Utils
+  exposed-modules:     System.Game.H2048.Core,
+                       System.Game.H2048.Utils
 
-  build-depends:       base,
-                       transformers,
-                       mtl,
+  build-depends:       base >= 4 && < 5,
+                       transformers >= 0 && < 1,
+                       mtl >= 2 && < 3,
                        MonadRandom
 
-  ghc-options:         -Wall -O2
+  ghc-options:         -Wall
   default-language:    Haskell2010
 
 executable h2048-simple
   hs-source-dirs:      src
   main-is:             MainSimple.hs
-  ghc-options:         -Wall -O2
-  build-depends:       base,
+  ghc-options:         -Wall
+  build-depends:       base >= 4 && < 5,
                        h2048,
-                       transformers,
-                       mtl,
-                       MonadRandom
+                       transformers >= 0 && < 1,
+                       mtl >= 2 && < 3,
+                       MonadRandom >= 0 && < 1
 
   if ! flag(exe)
     buildable:         False
@@ -57,15 +57,15 @@ executable h2048-simple
 executable h2048-vty
   hs-source-dirs:      src
   main-is:             MainVty.hs
-  ghc-options:         -Wall -O2
-  build-depends:       base,
+  ghc-options:         -Wall
+  build-depends:       base >= 4 && < 5,
                        h2048,
-                       text,
-                       vty,
-                       vty-ui,
-                       transformers,
-                       mtl,
-                       MonadRandom
+                       text >= 1 && < 2,
+                       vty >= 4 && < 5,
+                       vty-ui >= 1 && < 2,
+                       transformers >= 0 && < 1,
+                       mtl >= 2 && < 3,
+                       MonadRandom >= 0 && < 1
 
   if ! flag(exe) || ! flag(vty)
     buildable:         False
@@ -76,11 +76,11 @@ Test-Suite test
   hs-source-dirs:      src
   type:                exitcode-stdio-1.0
   main-is:             Test.hs
-  ghc-options:         -Wall -O2
-  build-depends:       base,
-                       MonadRandom,
-                       transformers,
-                       mtl,
-                       HUnit
+  ghc-options:         -Wall
+  build-depends:       base >= 4 && < 5,
+                       MonadRandom >= 0 && < 1,
+                       transformers >= 0 && < 1,
+                       mtl >= 2 && < 3,
+                       HUnit >= 1 && < 2
 
   default-language:    Haskell2010

@@ -1,11 +1,11 @@
-module Game.H2048.UI.Simple
+module System.Game.H2048.UI.Simple
     ( drawBoard
     , playGame
     , mainSimple
     )
 where
 
-import Game.H2048.Core
+import System.Game.H2048.Core
 
 import Data.List
 import Text.Printf

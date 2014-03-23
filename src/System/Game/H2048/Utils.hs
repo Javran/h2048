@@ -1,5 +1,5 @@
 {-|
-  Module      : Game.H2048.Utils
+  Module      : System.Game.H2048.Utils
   Copyright   : (c) 2014 Javran Cheng
   License     : MIT
   Maintainer  : Javran.C@gmail.com
@@ -9,7 +9,7 @@
 helper functions used when implementing game logic
 
 -}
-module Game.H2048.Utils
+module System.Game.H2048.Utils
     ( inPos
     , universe
     )

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Game.H2048.UI.Vty
+module System.Game.H2048.UI.Vty
     ( PlayState (..)
     , mainVty
     )
@@ -14,7 +14,7 @@ import Data.Foldable (foldMap)
 import Data.IORef
 import Data.Maybe
 
-import Game.H2048.Core
+import System.Game.H2048.Core
 
 -- | indicate the status of a playing session
 data PlayState g = PlayState
