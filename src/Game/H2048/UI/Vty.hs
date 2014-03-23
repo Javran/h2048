@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Game.H2048.UI.Vty
-    ( mainVty
+    ( PlayState (..)
+    , mainVty
     )
 where
 
@@ -19,7 +20,12 @@ import Data.Maybe
 
 import Game.H2048.Core
 
-data PlayState g = PlayState Board Int g
+data PlayState g = PlayState
+    { psBoard  :: Board
+    , psScore  :: Int
+    , psGState :: GameState
+    , psRGen   ::  g
+    }
 
 -- pair: ({val}, ({row},{col}))
 toIndexedBoard :: Board -> [(Int, (Int, Int))]
@@ -30,29 +36,58 @@ toIndexedBoard b = concat $ zipWith go [0..] taggedCols
         go :: Int -> [(Int,Int)] -> [(Int,(Int,Int))]
         go row = map (\(col,val) -> (val,(row,col)))
 
-renderGame :: PlayState g -> [[Widget FormattedText]] ->  IO ()
-renderGame (PlayState bd _ _) items = do
+colorize :: Int -> [(T.Text, Attr)]
+colorize i = [(s,attr)]
+    where
+        s = if i /= 0 then (T.pack . show) i else " "
+        attr = Attr (SetTo colorSty) (SetTo colorNum) Default
+        (colorSty, colorNum) = fromMaybe (bold,ISOColor 3) (lookup i colorDict)
+        colorDict =
+            [ (   0, (  dim, ISOColor 0))
+            , (   2, (  dim, ISOColor 7))
+            , (   4, (  dim, ISOColor 6))
+            , (   8, (  dim, ISOColor 3))
+            , (  16, (  dim, ISOColor 2))
+            , (  32, (  dim, ISOColor 1))
+            , (  64, ( bold, ISOColor 7))
+            , ( 128, ( bold, ISOColor 4))
+            , ( 256, ( bold, ISOColor 6))
+            , ( 512, ( bold, ISOColor 2))
+            , (1024, ( bold, ISOColor 1))
+            , (2048, ( bold, ISOColor 3))
+            ]
+
+renderGame :: PlayState g
+           -> [[Widget FormattedText]]
+           -> Widget FormattedText
+           ->  IO ()
+renderGame (PlayState bd sc gs _) items st = do
     let ixBd = toIndexedBoard bd
         renderCell v (row,col) = do
             let item = items !! row !! col
-            item `setTextWithAttrs` [ ( (T.pack . show) v, Attr Default (SetTo cyan) Default )   ]
+            item `setTextWithAttrs` colorize v
+        scoreDesc = case gs of
+                      Win -> "You win. Final Score: "
+                      Lose -> "Game Over. Final Score: "
+                      Alive -> "Current Score: "
 
     mapM_ (uncurry renderCell) ixBd
+    setText st $ T.pack (scoreDesc ++ show sc)
 
 newDirGameUpdate :: (RandomGen g)
                  => IORef (PlayState g)
                  -> [[Widget FormattedText]]
+                 -> Widget FormattedText
                  ->  Dir
                  -> IO Bool
-newDirGameUpdate psR items dir = do
-    (PlayState b1 s1 g1) <- readIORef psR
+newDirGameUpdate psR items st dir = do
+    (PlayState b1 s1 gs1 g1) <- readIORef psR
     let updated = updateBoard dir b1
         onSuccessUpdate (BoardUpdated b2 newS2) = do
-            -- TODO random.
             (maybeB3,g2) <- runRandT (insertNewCell b2) g1
             let b3 = fromMaybe b2 maybeB3
-                ps2 = PlayState b3 (s1 + newS2) g2
-            renderGame ps2 items
+                ps2 = PlayState b3 (s1 + newS2) gs1 g2
+            renderGame ps2 items st
             writeIORef psR ps2
             return True
     maybe
@@ -71,13 +106,11 @@ mainVty = do
                               (Just AlignRight)
                               (Just (padRight 1))
         helpString = "'i'/'k'/'j'/'l' to move, 'q' to quit."
-        scoreString :: Int -> T.Text
-        scoreString = T.pack . ("Current score: " ++) . show
 
     -- build up UI
     tbl <- newTable (replicate 4 cellSpec) BorderFull
 
-    pScore <- plainText $ scoreString 23333
+    pScore <- plainText " <Score> "
     pHelp  <- plainText   helpString
     hints  <- hCentered pScore <--> hCentered pHelp
 
@@ -97,10 +130,11 @@ mainVty = do
     -- prepare data and initialize
     g <- newStdGen
     ((bd,s),g') <- runRandT initGameBoard g
-    let ps = PlayState bd s g'
+
+    let ps = PlayState bd s Alive  g'
     playStateR <- newIORef ps
 
-    renderGame ps items
+    renderGame ps items pScore
 
     c <- newCollection
     _ <- addToCollection c ui fg
@@ -110,13 +144,13 @@ mainVty = do
           KASCII 'q' ->
               shutdownUi >> return True
           KASCII 'i' ->
-              newDirGameUpdate playStateR items DUp
+              newDirGameUpdate playStateR items pScore DUp
           KASCII 'k' ->
-              newDirGameUpdate playStateR items DDown
+              newDirGameUpdate playStateR items pScore DDown
           KASCII 'j' ->
-              newDirGameUpdate playStateR items DLeft
+              newDirGameUpdate playStateR items pScore DLeft
           KASCII 'l' ->
-              newDirGameUpdate playStateR items DRight
+              newDirGameUpdate playStateR items pScore DRight
           _ ->
               return False
 
