@@ -1,5 +1,7 @@
 # h2048
 
+[![Build Status](https://travis-ci.org/Javran/h2048.svg?branch=master)](https://travis-ci.org/Javran/h2048)
+
 a haskell implementation of Game 2048
 
 Based on [2048](https://github.com/gabrielecirulli/2048)
