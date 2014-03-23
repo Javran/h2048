@@ -27,6 +27,8 @@ data PlayState g = PlayState
     , psRGen   ::  g
     }
 
+-- TODO documentation!
+
 -- pair: ({val}, ({row},{col}))
 toIndexedBoard :: Board -> [(Int, (Int, Int))]
 toIndexedBoard b = concat $ zipWith go [0..] taggedCols
@@ -84,16 +86,23 @@ newDirGameUpdate psR items st dir = do
     (PlayState b1 s1 gs1 g1) <- readIORef psR
     let updated = updateBoard dir b1
         onSuccessUpdate (BoardUpdated b2 newS2) = do
-            (maybeB3,g2) <- runRandT (insertNewCell b2) g1
-            let b3 = fromMaybe b2 maybeB3
-                ps2 = PlayState b3 (s1 + newS2) gs1 g2
+            -- if we are still alive, this insertion is always possible
+            (Just b3,g2) <- runRandT (insertNewCell b2) g1
+            let ps2 = PlayState b3 (s1 + newS2) (gameState b3) g2
             renderGame ps2 items st
             writeIORef psR ps2
             return True
-    maybe
-        (return True)
-        onSuccessUpdate
-        updated
+    -- only update if alive
+    case gs1 of
+      Win ->
+          return True
+      Lose ->
+          return True
+      Alive ->
+          maybe
+             (return True)
+             onSuccessUpdate
+             updated
 
 mainVty :: IO ()
 mainVty = do
@@ -131,7 +140,7 @@ mainVty = do
     g <- newStdGen
     ((bd,s),g') <- runRandT initGameBoard g
 
-    let ps = PlayState bd s Alive  g'
+    let ps = PlayState bd s Alive g'
     playStateR <- newIORef ps
 
     renderGame ps items pScore
