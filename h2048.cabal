@@ -28,7 +28,9 @@ flag vty
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Game.H2048.Core
+  exposed-modules:     Game.H2048.Core,
+                       Game.H2048.Utils
+
   build-depends:       base,
                        transformers,
                        mtl,

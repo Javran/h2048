@@ -1,3 +1,26 @@
+{-|
+  Module      : Game.H2048.Core
+  Copyright   : (c) 2014 Javran Cheng
+  License     : MIT
+  Maintainer  : Javran.C@gmail.com
+  Stability   : experimental
+  Portability : POSIX
+
+The core game logic implementation for Game 2048.
+
+The routine for using this library would be:
+
+1. use `initGameBoard` to get a valid board to begin with.
+(two new cells are inserted for you, if you want to use an empty board,
+`initBoard` is a shorthand)
+
+2. interact with user / algorithm / etc., use `updateBoard` to update a board.
+
+3. use `insertNewCell` to insert a new cell randomly
+
+4. examine if the player wins / loses / is still alive using `gameState`.
+
+-}
 module Game.H2048.Core
     ( Board
     , Line
