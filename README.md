@@ -20,29 +20,18 @@ Based on [2048](https://github.com/gabrielecirulli/2048)
 
 ### With cabal
 
+`h2048` is now available on [hackage](http://hackage.haskell.org/package/h2048).
+
 If you have [Cabal](http://www.haskell.org/cabal/) installed,
-you can use the following command to build this project:
+you can use the following command to install this project:
 
-    cabal build
+    cabal update
+    cabal install h2048
 
-The executable will be located at `dist/build/h2048-simple/h2048-vty`,
-to run the program:
+The binaries are `h2048-simple` for simple CLI version, `h2048-vty` for CLI version
+implemented using `vty-ui`.
 
-    ./dist/build/h2048-simple/h2048-vty
-
-Or alternatively:
-
-    cabal run h2048-vty
-
-If you have trouble building the `vty` CLI version,
-you can try to turn off feature `vty` and use `h2028-simple`:
-
-    cabal configure --flag="-vty"
-    cabal build
-    # now the program should be ready
-    cabal run h2048-simple
-    # or alternatively:
-    ./dist/build/h2048-simple/h2048-simple
+(Note: the flags are not working for now.)
 
 ### Without cabal
 
