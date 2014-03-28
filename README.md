@@ -2,7 +2,11 @@
 
 [![Build Status](https://travis-ci.org/Javran/h2048.svg?branch=master)](https://travis-ci.org/Javran/h2048)
 
-a haskell implementation of Game 2048
+A haskell implementation of Game 2048. Including:
+
+* a library for experimenting game strategies for Game 2048
+* a simple CLI that merely pretty-prints the game board
+* a better CLI implemented using [vty-ui](http://hackage.haskell.org/package/vty-ui)
 
 Based on [2048](https://github.com/gabrielecirulli/2048)
 
@@ -31,7 +35,19 @@ you can use the following command to install this project:
 The binaries are `h2048-simple` for simple CLI version, `h2048-vty` for CLI version
 implemented using `vty-ui`.
 
-(Note: the flags are not working for now.)
+### Flags
+
+If you just want the functionality of this library, you can turn off flag `exe`.
+If you have trouble building the `vty` CLI version, you can try to turn off flag `vty`.
+
+An example for turning off flag `vty`:
+
+    # if you are installing package from hackage:
+    cabal install --flag="-vty"
+
+    # or if you are building from the github repo
+    cabal configure --flag="-vty"
+    cabal build
 
 ### Without cabal
 
