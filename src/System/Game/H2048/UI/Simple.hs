@@ -85,9 +85,13 @@ playGame (b,score) = do
         -- return the next user move:
         -- * return Nothing only if user has pressed "q"
         -- * return Just <key>   if one of "ijkl" is pressed
-        handleUserMove = do
+        handleUserMove win = do
+            let scoreFormat =
+                    if win
+                        then "You win, current score: %d\n"
+                        else "Current score: %d\n"
             drawBoard b
-            _ <- printf "Current score: %d\n" score
+            _ <- printf scoreFormat score
             hFlush stdout
             c <- getChar
             putStrLn ""
@@ -111,7 +115,7 @@ playGame (b,score) = do
                -- user will be trapped in "handleUserMove" unless
                -- a valid key is given. So the error above (the wildcard case)
                -- can never be reached
-               else handleUserMove
+               else handleUserMove win
         handleGame =
             maybe
                 -- user quit
@@ -137,8 +141,10 @@ playGame (b,score) = do
           liftIO $ endGame (b,score) True
       Lose ->
           liftIO $ endGame (b,score) False
+      WinAlive ->
+          liftIO (handleUserMove True ) >>= handleGame
       Alive ->
-          liftIO handleUserMove >>= handleGame
+          liftIO (handleUserMove False) >>= handleGame
 
 -- | the entry of Simple UI
 mainSimple :: IO ()
