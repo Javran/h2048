@@ -82,9 +82,10 @@ renderGame (PlayState bd sc gs _) items st = do
             item `setTextWithAttrs` colorize v
         -- the beginning of status bar
         scoreDesc = case gs of
-                      Win -> "You win. Final Score: "
-                      Lose -> "Game Over. Final Score: "
-                      Alive -> "Current Score: "
+                      Win -> "You win. Final score: "
+                      Lose -> "Game over. Final score: "
+                      Alive -> "Current score: "
+                      WinAlive -> "You win, current score:"
 
     -- update table
     mapM_ (uncurry renderCell) ixBd
@@ -112,6 +113,15 @@ newDirGameUpdate psR items st dir = do
             -- update PlayState to the IORef
             writeIORef psR ps2
             return True
+        onAlive =
+            maybe
+                -- 2(a). update failed, invalid move, do nothing
+                (return True)
+                -- 2(b). updated successfully
+                onSuccessUpdate
+                -- 2. try to update the board
+                updated
+
     -- 1. only update if alive
     case gs1 of
       Win ->
@@ -119,13 +129,9 @@ newDirGameUpdate psR items st dir = do
       Lose ->
           return True
       Alive ->
-          maybe
-             -- 2(a). update failed, invalid move, do nothing
-             (return True)
-             -- 2(b). updated successfully
-             onSuccessUpdate
-             -- 2. try to update the board
-             updated
+          onAlive
+      WinAlive ->
+          onAlive
 
 -- | the entry for vty-ui CLI implementation
 mainVty :: IO ()
