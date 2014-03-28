@@ -1,3 +1,14 @@
+{-|
+  Module      : System.Game.H2048.UI.Vty
+  Copyright   : (c) 2014 Javran Cheng
+  License     : MIT
+  Maintainer  : Javran.C@gmail.com
+  Stability   : experimental
+  Portability : POSIX
+
+A CLI version of Game 2048 implemented using vty-ui
+
+-}
 {-# LANGUAGE OverloadedStrings #-}
 module System.Game.H2048.UI.Vty
     ( PlayState (..)
