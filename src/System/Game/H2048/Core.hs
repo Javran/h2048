@@ -62,9 +62,10 @@ data BoardUpdated = BoardUpdated
     } deriving (Eq, Show)
 
 -- | current game state, see also 'gameState'
-data GameState = Win
-               | Lose
-               | Alive
+data GameState = Win       -- ^ win, can make no step further
+               | WinAlive  -- ^ win, and still alive
+               | Lose      -- ^ can make no step further, no cell reaches 2048
+               | Alive     -- ^ playing
                  deriving (Enum, Eq, Show)
 
 -- | move direction
@@ -165,12 +166,17 @@ blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
 --   otherwise, 'Alive'.
 gameState :: Board -> GameState
 gameState b
-    | any (>= 2048) . concat $ b
-        = Win
-    | all (isNothing . ( `updateBoard` b)) universe
+    | isWin
+        = if noFurther
+              then Win
+              else WinAlive
+    | noFurther
         = Lose
     | otherwise
         = Alive
+    where
+        isWin = (any (>= 2048) . concat) b
+        noFurther = all (isNothing . ( `updateBoard` b)) universe
 
 -- | initialize the board by puting two cells randomly
 --   into the board.
