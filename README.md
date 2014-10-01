@@ -14,11 +14,11 @@ Based on [2048](https://github.com/gabrielecirulli/2048)
 
 ## Simple CLI version
 
-![](https://github.com/Javran/h2048/releases/download/0.1.0.0/h2048-simple.jpg)
+![](http://i.imgur.com/FS3tdLp.jpg)
 
 ## vty CLI version
 
-![](https://github.com/Javran/h2048/releases/download/0.1.0.0/h2048-vty.jpg)
+![](http://i.imgur.com/twNDMeq.jpg)
 
 ## Build and run
 
