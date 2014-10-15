@@ -2,7 +2,7 @@
 --  see http://haskell.org/cabal/users-guide/
 
 name:                h2048
-version:             0.1.0.3
+version:             0.2.0.0
 synopsis:            a haskell implementation of Game 2048
 description:
 
@@ -17,7 +17,7 @@ maintainer:          Javran.C@gmail.com
 copyright:           Copyright (c) 2014 Javran Cheng
 category:            Game
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:  README.md, CHANGELOG.md
 cabal-version:       >=1.10
 
 flag exe
