@@ -1,5 +1,5 @@
 {-|
-  Module      : System.Game.H2048.UI.Simple
+  Module      : Game.H2048.UI.Simple
   Copyright   : (c) 2014 Javran Cheng
   License     : MIT
   Maintainer  : Javran.C@gmail.com
@@ -9,14 +9,14 @@
 A simple CLI implemention of Game 2048
 
 -}
-module System.Game.H2048.UI.Simple
+module Game.H2048.UI.Simple
     ( drawBoard
     , playGame
     , mainSimple
     )
 where
 
-import System.Game.H2048.Core
+import Game.H2048.Core
 
 import Data.List
 import Text.Printf

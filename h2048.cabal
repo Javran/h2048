@@ -30,14 +30,14 @@ flag vty
 
 library
   hs-source-dirs:      src
-  exposed-modules:     System.Game.H2048.Core,
-                       System.Game.H2048.Utils
+  exposed-modules:     Game.H2048.Core,
+                       Game.H2048.Utils
   if flag(exe)
-    exposed-modules:   System.Game.H2048.UI.Simple
+    exposed-modules:   Game.H2048.UI.Simple
 
   if flag(exe) && flag(vty)
     exposed-modules:
-                       System.Game.H2048.UI.Vty
+                       Game.H2048.UI.Vty
 
   build-depends:       base >= 4 && < 5,
                        transformers >= 0 && < 1,

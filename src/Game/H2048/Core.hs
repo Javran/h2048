@@ -1,5 +1,5 @@
 {-|
-  Module      : System.Game.H2048.Core
+  Module      : Game.H2048.Core
   Copyright   : (c) 2014 Javran Cheng
   License     : MIT
   Maintainer  : Javran.C@gmail.com
@@ -21,7 +21,7 @@ The routine for using this library would be:
 4. examine if the player wins / loses / is still alive using `gameState`.
 
 -}
-module System.Game.H2048.Core
+module Game.H2048.Core
     ( Board
     , Line
     , Dir (..)
@@ -44,7 +44,7 @@ import Control.Monad.Random
 import Data.List
 import Data.Maybe
 
-import System.Game.H2048.Utils
+import Game.H2048.Utils
 
 -- | represent a 4x4 board for Game 2048
 --   each element should be either zero or 2^i

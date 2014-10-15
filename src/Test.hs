@@ -5,7 +5,7 @@ import Control.Monad
 import Control.Monad.Writer
 import System.Exit
 
-import System.Game.H2048.Core
+import Game.H2048.Core
 
 -- | the expected behavior of 'compactLine'
 compactLineTestcases :: [ ((Line, Int) , Line) ]

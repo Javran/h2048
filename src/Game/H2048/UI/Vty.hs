@@ -1,5 +1,5 @@
 {-|
-  Module      : System.Game.H2048.UI.Vty
+  Module      : Game.H2048.UI.Vty
   Copyright   : (c) 2014 Javran Cheng
   License     : MIT
   Maintainer  : Javran.C@gmail.com
@@ -10,7 +10,7 @@ A CLI version of Game 2048 implemented using vty-ui
 
 -}
 {-# LANGUAGE OverloadedStrings #-}
-module System.Game.H2048.UI.Vty
+module Game.H2048.UI.Vty
     ( PlayState (..)
     , mainVty
     )
@@ -25,7 +25,7 @@ import Data.Foldable (foldMap)
 import Data.IORef
 import Data.Maybe
 
-import System.Game.H2048.Core
+import Game.H2048.Core
 
 -- | indicate the status of a playing session
 data PlayState g = PlayState
