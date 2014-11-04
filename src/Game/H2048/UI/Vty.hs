@@ -183,21 +183,21 @@ mainVty = do
 
     pScore `onKeyPressed` \_ key _ ->
         case key of
-          KASCII 'q' ->
+          KChar 'q' ->
               shutdownUi >> return True
-          KASCII 'i' ->
+          KChar 'i' ->
               doUpdate DUp
           KUp ->
               doUpdate DUp
-          KASCII 'k' ->
+          KChar 'k' ->
               doUpdate DDown
           KDown ->
               doUpdate DDown
-          KASCII 'j' ->
+          KChar 'j' ->
               doUpdate DLeft
           KLeft ->
               doUpdate DLeft
-          KASCII 'l' ->
+          KChar 'l' ->
               doUpdate DRight
           KRight ->
               doUpdate DRight
