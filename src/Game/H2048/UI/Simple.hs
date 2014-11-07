@@ -153,7 +153,8 @@ mainSimple = do
     -- no buffering - don't wait for the "enter"
     hSetBuffering stdin NoBuffering
     g <- newStdGen
-    -- in case someone don't read the README
+    -- show some helpful messages
+    -- whether the user has read the README or not :)
     putStrLn helpString
     -- initialize game based on the random seed
     _ <- evalRandT (initGameBoard >>= playGame) g
