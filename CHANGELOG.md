@@ -1,3 +1,7 @@
+# 0.2.0.1
+
+* build with vty 5 and vty-ui 1.8 (thanks to @vikraman)
+
 # 0.2.0.0
 
 * conditional flags: `exe` and `vty`
