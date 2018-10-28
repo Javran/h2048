@@ -10,10 +10,10 @@ A simple CLI implemention of Game 2048
 
 -}
 module Game.H2048.UI.Simple
-    ( drawBoard
-    , playGame
-    , mainSimple
-    )
+  ( drawBoard
+  , playGame
+  , mainSimple
+  )
 where
 
 import Game.H2048.Core

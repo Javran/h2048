@@ -21,24 +21,24 @@ The routine for using this library would be:
 4. examine if the player wins / loses / is still alive using `gameState`.
 
 -}
+{-# LANGUAGE TupleSections #-}
 module Game.H2048.Core
-    ( Board
-    , Line
-    , Dir (..)
-    , BoardUpdated (..)
-    , GameState (..)
-    , gameState
-    , compactLine
-    , initBoard
-    , initGameBoard
-    , updateBoard
-    , insertNewCell
-    , generateNewCell
-    )
+  ( Board
+  , Line
+  , Dir (..)
+  , BoardUpdated (..)
+  , GameState (..)
+  , gameState
+  , compactLine
+  , initBoard
+  , initGameBoard
+  , updateBoard
+  , insertNewCell
+  , generateNewCell
+  )
 where
 
 import Control.Arrow
-import Control.Monad
 import Control.Monad.Writer
 import Control.Monad.Random
 import Data.List
@@ -62,18 +62,20 @@ data BoardUpdated = BoardUpdated
     } deriving (Eq, Show)
 
 -- | current game state, see also 'gameState'
-data GameState = Win       -- ^ win, can make no step further
-               | WinAlive  -- ^ win, and still alive
-               | Lose      -- ^ can make no step further, no cell reaches 2048
-               | Alive     -- ^ playing
-                 deriving (Enum, Eq, Show)
+data GameState
+  = Win       -- ^ win, can make no step further
+  | WinAlive  -- ^ win, and still alive
+  | Lose      -- ^ can make no step further, no cell reaches 2048
+  | Alive     -- ^ playing
+  deriving (Enum, Eq, Show)
 
 -- | move direction
-data Dir = DUp
-         | DDown
-         | DLeft
-         | DRight
-         deriving (Enum, Bounded, Eq, Ord, Show)
+data Dir
+  = DUp
+  | DDown
+  | DLeft
+  | DRight
+  deriving (Enum, Bounded, Eq, Ord, Show)
 
 -- | the initial board before a game started
 initBoard :: Board
@@ -112,10 +114,10 @@ compactLine = runKleisli
 --   a 'BoardUpdated' is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
 updateBoard :: Dir -> Board -> Maybe BoardUpdated
-updateBoard d board = if board /= board'
-                          then Just $ BoardUpdated board' (getSum score)
-                          else Nothing
-    where
+updateBoard d board = do
+    guard $ board /= board'
+    pure $ BoardUpdated board' (getSum score)
+  where
         board' :: Board
         -- transform boards so that
         -- we only focus on "gravitize to the left".
@@ -186,7 +188,7 @@ initGameBoard =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
     -- so that we can never have Nothing on the LHS
-    liftM ( (\x -> (x,0)) . fromJust) (insertNewCell initBoard >>= (insertNewCell . fromJust))
+    (,0) . fromJust <$> (insertNewCell initBoard >>= (insertNewCell . fromJust))
 
 -- | try to insert a new cell randomly
 insertNewCell :: (MonadRandom r) => Board -> r (Maybe Board)
@@ -208,6 +210,5 @@ insertNewCell b = do
 --   we have 90% probability of getting a cell of value 2,
 --   and 10% probability of getting a cell of value 4.
 generateNewCell :: (MonadRandom r) => r Int
-generateNewCell = do
-    r <- getRandom
-    return $ if r < (0.9 :: Float) then 2 else 4
+generateNewCell = getRandom >>= \r ->
+    pure $ if r < (0.9 :: Float) then 2 else 4

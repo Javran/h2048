@@ -10,9 +10,9 @@ helper functions used when implementing game logic
 
 -}
 module Game.H2048.Utils
-    ( inPos
-    , universe
-    )
+  ( inPos
+  , universe
+  )
 where
 
 import Control.Lens hiding (universe)
