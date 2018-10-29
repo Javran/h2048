@@ -130,6 +130,9 @@ updateBoard d (Board board) = do
                            >>^ rTransR) board
 
         -- rTrans for "a list of reversible transformations, that will be performed in order"
+        -- TODO: we could probably keep a pair of functions as monoid
+        -- (i.e. `(f,g)` which defines an iso), this allows us to fully eliminate
+        -- List structure which is unnecessary.
         rTrans =
             case d of
               -- the problem itself is "gravitize to the left"
