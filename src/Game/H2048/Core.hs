@@ -27,10 +27,10 @@ module Game.H2048.Core
   , Line
   , Dir (..)
   , BoardUpdateResult
+  , Board(..)
   , GameState (..)
   , gameState
   , compactLine
-  , initBoard
   , initGameBoard
   , updateBoard
   , insertNewCell
@@ -40,6 +40,7 @@ where
 
 import Data.List
 import Data.Maybe
+import Data.Default
 
 import Control.Arrow
 import Control.Monad.Writer
@@ -50,7 +51,7 @@ import Game.H2048.Utils
 -- | represent a 4x4 board for Game 2048
 --   each element should be either zero or 2^i
 --   where i >= 1.
-type Board = [[Int]]
+newtype Board = Board [[Int]]
 
 -- | a list of 4 elements, stands for
 --   one column / row in the board
@@ -76,8 +77,8 @@ data Dir
   deriving (Enum, Bounded, Eq, Ord, Show)
 
 -- | the initial board before a game started
-initBoard :: Board
-initBoard = (replicate 4 . replicate 4) 0
+instance Default Board where
+    def = Board $ (replicate 4 . replicate 4) 0
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
@@ -112,11 +113,10 @@ compactLine = runKleisli
 --   a 'BoardUpdated' is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
 updateBoard :: Dir -> Board -> Maybe BoardUpdateResult
-updateBoard d board = do
+updateBoard d (Board board) = do
     guard $ board /= board'
-    pure (board', getSum score)
+    pure (Board board', getSum score)
   where
-        board' :: Board
         -- transform boards so that
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
@@ -130,7 +130,6 @@ updateBoard d board = do
                            >>^ rTransR) board
 
         -- rTrans for "a list of reversible transformations, that will be performed in order"
-        rTrans :: [Board -> Board]
         rTrans =
             case d of
               -- the problem itself is "gravitize to the left"
@@ -149,7 +148,7 @@ updateBoard d board = do
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
 blankCells :: Board -> [(Int, Int)]
-blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
+blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
     where
         blankCells' = filter ((== 0) . snd . snd) linearBoard
         -- flatten to make it ready for filter
@@ -165,7 +164,7 @@ blankCells b = map (\(row, (col, _)) -> (row,col)) blankCells'
 --   or 'Lose' if we can move no further
 --   otherwise, 'Alive'.
 gameState :: Board -> GameState
-gameState b
+gameState (Board b)
     | isWin
         = if noFurther
               then Win
@@ -176,7 +175,7 @@ gameState b
         = Alive
     where
         isWin = (any (>= 2048) . concat) b
-        noFurther = all (isNothing . ( `updateBoard` b)) universe
+        noFurther = all (isNothing . ( `updateBoard` (Board b))) universe
 
 -- | initialize the board by puting two cells randomly
 --   into the board.
@@ -186,7 +185,7 @@ initGameBoard =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
     -- so that we can never have Nothing on the LHS
-    (,0) . fromJust <$> (insertNewCell initBoard >>= (insertNewCell . fromJust))
+    (,0) . fromJust <$> (insertNewCell def >>= (insertNewCell . fromJust))
 
 -- | try to insert a new cell randomly
 insertNewCell :: (MonadRandom r) => Board -> r (Maybe Board)
@@ -202,7 +201,8 @@ insertNewCell b = do
            choice <- getRandomR (0, length availableCells - 1)
            let (row,col) = availableCells !! choice
            value <- generateNewCell
-           return $ Just $ (inPos row . inPos col) (const value) b
+           let (Board b') = b
+           pure $ Just $ Board $ (inPos row . inPos col) (const value) b'
 
 -- | generate a new cell according to the game rule
 --   we have 90% probability of getting a cell of value 2,

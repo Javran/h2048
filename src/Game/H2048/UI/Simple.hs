@@ -13,6 +13,8 @@ module Game.H2048.UI.Simple
   ( drawBoard
   , playGame
   , mainSimple
+    -- TODO: shouldn't expose constructor.
+  , Board(..)
   )
 where
 
@@ -33,7 +35,7 @@ helpString =  "'i'/'k'/'j'/'l' to move, 'q' to quit."
 
 -- | pretty print the board to stdout
 drawBoard :: Board -> IO ()
-drawBoard board = do
+drawBoard (Board board) = do
     {-
      when outputed, a cell will look like:
 
