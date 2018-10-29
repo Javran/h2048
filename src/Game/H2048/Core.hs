@@ -26,7 +26,7 @@ module Game.H2048.Core
   ( Board
   , Line
   , Dir (..)
-  , BoardUpdated (..)
+  , BoardUpdateResult
   , GameState (..)
   , gameState
   , compactLine
@@ -38,11 +38,12 @@ module Game.H2048.Core
   )
 where
 
+import Data.List
+import Data.Maybe
+
 import Control.Arrow
 import Control.Monad.Writer
 import Control.Monad.Random
-import Data.List
-import Data.Maybe
 
 import Game.H2048.Utils
 
@@ -56,10 +57,7 @@ type Board = [[Int]]
 type Line  =  [Int]
 
 -- | result after a successful 'updateBoard'
-data BoardUpdated = BoardUpdated
-    { brBoard    :: Board  -- ^ new board
-    , brScore    :: Int    -- ^ score collected in this update
-    } deriving (Eq, Show)
+type BoardUpdateResult = (Board, Int)
 
 -- | current game state, see also 'gameState'
 data GameState
@@ -113,10 +111,10 @@ compactLine = runKleisli
 -- | update the board taking a direction,
 --   a 'BoardUpdated' is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
-updateBoard :: Dir -> Board -> Maybe BoardUpdated
+updateBoard :: Dir -> Board -> Maybe BoardUpdateResult
 updateBoard d board = do
     guard $ board /= board'
-    pure $ BoardUpdated board' (getSum score)
+    pure (board', getSum score)
   where
         board' :: Board
         -- transform boards so that

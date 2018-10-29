@@ -128,13 +128,13 @@ playGame (b,score) = do
                          -- 2(a). the move is invalid, try again
                          (liftIO (putStrLn "Invalid move") >> playGame (b,score))
                          -- 2(b). on success, insert new cell
-                         (\ result -> do
+                         (\(newBoard, scoreObtained) -> do
                               -- should always succeed
                               -- because when a successful move is done
                               -- there is at least one empty cell in the board
-                              (Just newB) <- insertNewCell (brBoard result)
+                              (Just newB) <- insertNewCell newBoard
                               -- keep going, accumulate score
-                              playGame (newB, score + brScore result)))
+                              playGame (newB, score + scoreObtained)))
 
     case gameState b of
       Win ->
