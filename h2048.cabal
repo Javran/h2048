@@ -20,23 +20,19 @@ build-type:          Simple
 extra-source-files:  README.md, CHANGELOG.md
 cabal-version:       >=1.10
 
-flag exe
-  description:         build executables
-  default:             True
-
 library
   hs-source-dirs:      src
   exposed-modules:     Game.H2048.Core,
                        Game.H2048.Utils
-  if flag(exe)
-    exposed-modules:   Game.H2048.UI.Simple
+  other-modules:       Game.H2048.UI.Simple
 
   build-depends:       base >= 4,
                        transformers,
                        mtl,
                        MonadRandom,
                        text,
-                       lens
+                       lens,
+                       data-default
 
   ghc-options:         -Wall
   default-language:    Haskell2010
@@ -49,10 +45,8 @@ executable h2048-simple
                        transformers,
                        mtl,
                        MonadRandom,
-                       lens
-
-  if ! flag(exe)
-    buildable:         False
+                       lens,
+                       data-default
 
   default-language:    Haskell2010
 
