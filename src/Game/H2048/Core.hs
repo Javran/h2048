@@ -54,7 +54,13 @@ newtype Board = Board [Line]
 
 -- | a list of 4 elements, stands for
 --   one column / row in the board
-type Line = [Int]
+newtype Line = Line [Int] deriving (Eq)
+
+mkLine :: [Int] -> Line
+mkLine = Line . take 4 . (++ repeat 0)
+
+instance Default Line where
+    def = mkLine []
 
 -- | result after a successful 'updateBoard'
 type BoardUpdateResult = (Board, Int)
@@ -77,18 +83,18 @@ data Dir
 
 -- | the initial board before a game started
 instance Default Board where
-    def = Board $ (replicate 4 . replicate 4) 0
+    def = Board $ replicate 4 def
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
 compactLine :: Line -> Writer (Sum Int) Line
-compactLine = runKleisli
+compactLine (Line l) = runKleisli
                     -- remove zeros
                   ( filter (/=0)
                     -- do merge and collect score
                 ^>> Kleisli merge
                     -- restore zeros, on the "fst" part
-                >>^ take 4 . (++ repeat 0))
+                >>^ mkLine) l
 
     where
         merge :: [Int] -> Writer (Sum Int) [Int]
