@@ -40,6 +40,10 @@ library
 executable h2048-simple
   hs-source-dirs:      src
   main-is:             MainSimple.hs
+  other-modules:       Game.H2048.UI.Simple,
+                       Game.H2048.Core,
+                       Game.H2048.Utils
+
   ghc-options:         -Wall
   build-depends:       base >= 4,
                        transformers,
