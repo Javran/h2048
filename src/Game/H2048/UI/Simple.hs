@@ -13,7 +13,6 @@ module Game.H2048.UI.Simple
   ( drawBoard
   , playGame
   , mainSimple
-    -- TODO: shouldn't expose constructor.
   , Board(..)
   )
 where

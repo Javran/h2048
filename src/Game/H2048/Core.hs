@@ -25,6 +25,7 @@ The routine for using this library would be:
 module Game.H2048.Core
   ( Dir (..)
   , BoardUpdateResult
+    -- TODO: shouldn't expose constructor.
   , Board(..)
   , GameState (..)
   , gameState
@@ -150,15 +151,21 @@ updateBoard d (Board board) = do
 --   return coordinates for each blank cell
 blankCells :: Board -> [(Int, Int)]
 blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
-    where
-        blankCells' = filter ((== 0) . snd . snd) linearBoard
-        -- flatten to make it ready for filter
-        linearBoard = concat $ zipWith tagRow [0..] colTagged
+  where
+    {-
+      the algorithm is to just find all empty cells -
+      we could of course keep track of all empty cells,
+      but that will be overcomplicated and hard to maintain
+      when we do "compactLine"
+     -}
+    blankCells' = filter ((== 0) . snd . snd) linearBoard
+    -- flatten to make it ready for filter
+    linearBoard = concat $ zipWith tagRow [0..] colTagged
 
-        -- tag cells with row num
-        tagRow row = map ( (,) row )
-        -- tag cells with column num
-        colTagged = map (zip [0..]) b
+    -- tag cells with row num
+    tagRow row = map ((,) row)
+    -- tag cells with column num
+    colTagged = map (zip [0..]) b
 
 -- | return current game state.
 --   'Win' if any cell is equal to or greater than 2048
