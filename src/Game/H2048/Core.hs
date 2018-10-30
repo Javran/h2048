@@ -27,6 +27,7 @@ module Game.H2048.Core
   , BoardUpdateResult
     -- TODO: shouldn't expose constructor.
   , Board(..)
+  , unLine
   , GameState (..)
   , gameState
   , compactLine
@@ -44,6 +45,7 @@ import Data.Default
 import Control.Arrow
 import Control.Monad.Writer
 import Control.Monad.Random
+import Data.Coerce
 
 import Game.H2048.Utils
 
@@ -54,7 +56,7 @@ newtype Board = Board [Line]
 
 -- | a list of 4 elements, stands for
 --   one column / row in the board
-newtype Line = Line [Int] deriving (Eq)
+newtype Line = Line { unLine :: [Int] } deriving (Eq)
 
 mkLine :: [Int] -> Line
 mkLine = Line . take 4 . (++ repeat 0)
@@ -138,7 +140,8 @@ updateBoard d (Board board) = do
         -- TODO: we could probably keep a pair of functions as monoid
         -- (i.e. `(f,g)` which defines an iso), this allows us to fully eliminate
         -- List structure which is unnecessary.
-        rTrans =
+        rTrans :: [[Line] -> [Line]]
+        rTrans = coerce $ (
             case d of
               -- the problem itself is "gravitize to the left"
               DLeft  -> []
@@ -148,6 +151,7 @@ updateBoard d (Board board) = do
               DUp    -> [transpose]
               -- same as DUp case + DRight case
               DDown  -> [transpose, map reverse]
+              :: [[[Int]] -> [[Int]]])
 
         -- how we convert it "into" and "back"
         rTransL = foldl (flip (.)) id rTrans
@@ -171,7 +175,7 @@ blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
     -- tag cells with row num
     tagRow row = map ((,) row)
     -- tag cells with column num
-    colTagged = map (zip [0..]) b
+    colTagged = map (zip [0..] . (coerce :: Line -> [Int])) b
 
 -- | return current game state.
 --   'Win' if any cell is equal to or greater than 2048
@@ -188,7 +192,7 @@ gameState (Board b)
     | otherwise
         = Alive
     where
-        isWin = (any (>= 2048) . concat) b
+        isWin = (any (>= 2048) . concat . map (coerce :: Line -> [Int])) b
         noFurther = all (isNothing . (`updateBoard` Board b)) universe
 
 -- | initialize the board by puting two cells randomly
@@ -216,7 +220,9 @@ insertNewCell b = do
            let (row,col) = availableCells !! choice
            value <- generateNewCell
            let (Board b') = b
-           pure $ Just $ Board $ (inPos row . inPos col) (const value) b'
+               c1 :: ([Int] -> [Int]) -> Line -> Line
+               c1 = coerce
+           pure $ Just $ Board $ (inPos row . c1 . inPos col) (const value) $ b'
 
 -- | generate a new cell according to the game rule
 --   we have 90% probability of getting a cell of value 2,

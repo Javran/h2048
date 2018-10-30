@@ -14,11 +14,12 @@ module Game.H2048.UI.Simple
   , playGame
   , mainSimple
   , Board(..)
+    -- TODO: hide
+  , unLine
   )
 where
 
 import Game.H2048.Core
-
 import Data.List
 import Text.Printf
 import Control.Monad.IO.Class
@@ -63,8 +64,8 @@ drawBoard (Board board) = do
                            then replicate cellWidth ' '
                            else printf " %4d " c
 
-        drawRow :: [Int] -> IO ()
-        drawRow row = do
+        drawRow line = do
+            let row = unLine line
             -- prints "| <cell1> | <cell2> | ... |"
             putChar '|'
             mapM_ (prettyCell >>> putStr >>> (>> putChar '|') ) row
