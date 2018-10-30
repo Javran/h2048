@@ -23,9 +23,7 @@ The routine for using this library would be:
 -}
 {-# LANGUAGE TupleSections #-}
 module Game.H2048.Core
-  ( Board
-  , Line
-  , Dir (..)
+  ( Dir (..)
   , BoardUpdateResult
   , Board(..)
   , GameState (..)
@@ -51,11 +49,11 @@ import Game.H2048.Utils
 -- | represent a 4x4 board for Game 2048
 --   each element should be either zero or 2^i
 --   where i >= 1.
-newtype Board = Board [[Int]]
+newtype Board = Board [Line]
 
 -- | a list of 4 elements, stands for
 --   one column / row in the board
-type Line  =  [Int]
+type Line = [Int]
 
 -- | result after a successful 'updateBoard'
 type BoardUpdateResult = (Board, Int)
@@ -178,7 +176,7 @@ gameState (Board b)
         = Alive
     where
         isWin = (any (>= 2048) . concat) b
-        noFurther = all (isNothing . ( `updateBoard` (Board b))) universe
+        noFurther = all (isNothing . (`updateBoard` Board b)) universe
 
 -- | initialize the board by puting two cells randomly
 --   into the board.
