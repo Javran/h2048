@@ -8,7 +8,7 @@ import System.Exit
 import Game.H2048.Core
 
 -- | the expected behavior of 'compactLine'
-compactLineTestcases :: [ ((Line, Int) , Line) ]
+compactLineTestcases :: [ (([Int], Int) , [Int]) ]
 compactLineTestcases =
     --  < expected  >   < input >
     [ ( ([0,0,0,0],0),  [0,0,0,0] )
@@ -23,12 +23,12 @@ compactLineTestcases =
 compactLineTests :: Test
 compactLineTests = TestLabel "compactLine" . TestList . map
         (\(expected, inp) ->
-             expected ~=?
-             second getSum (runWriter (compactLine inp)))
+             first mkLine expected ~=?
+             second getSum (runWriter (compactLine (mkLine inp))))
         $ compactLineTestcases
 
 -- | the expected behavior of 'gameState'
-gameStateTestcases :: [ (String, GameState, Board) ]
+gameStateTestcases :: [ (String, GameState, [[Int]]) ]
 gameStateTestcases =
     [ ( "trivial win, alive",
         WinAlive , [ [ 2048, 2048, 2048, 2048 ]
@@ -70,7 +70,8 @@ gameStateTestcases =
 gameStateTests :: Test
 gameStateTests = TestLabel "gameState" . TestList . map
         (\(lbl, expected, inp) ->
-             TestLabel lbl (expected ~=? gameState inp))
+            let bd = Board $ map mkLine inp
+            in TestLabel lbl (expected ~=? gameState bd))
         $ gameStateTestcases
 
 -- | run testcase and quit immediately after a failure

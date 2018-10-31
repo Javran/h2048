@@ -27,6 +27,9 @@ module Game.H2048.Core
   , BoardUpdateResult
     -- TODO: shouldn't expose constructor.
   , Board(..)
+  , mkBoard
+  , Line
+  , mkLine
   , unLine
   , GameState (..)
   , gameState
@@ -54,9 +57,12 @@ import Game.H2048.Utils
 --   where i >= 1.
 newtype Board = Board [Line]
 
+mkBoard :: [[Int]] -> Board
+mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
+
 -- | a list of 4 elements, stands for
 --   one column / row in the board
-newtype Line = Line { unLine :: [Int] } deriving (Eq)
+newtype Line = Line { unLine :: [Int] } deriving (Eq, Show)
 
 mkLine :: [Int] -> Line
 mkLine = Line . take 4 . (++ repeat 0)
