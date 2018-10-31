@@ -141,7 +141,7 @@ updateBoard d (Board board) = do
         -- (i.e. `(f,g)` which defines an iso), this allows us to fully eliminate
         -- List structure which is unnecessary.
         rTrans :: [[Line] -> [Line]]
-        rTrans = coerce $ (
+        rTrans = coerce (
             case d of
               -- the problem itself is "gravitize to the left"
               DLeft  -> []
@@ -192,7 +192,7 @@ gameState (Board b)
     | otherwise
         = Alive
     where
-        isWin = (any (>= 2048) . concat . map (coerce :: Line -> [Int])) b
+        isWin = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
         noFurther = all (isNothing . (`updateBoard` Board b)) universe
 
 -- | initialize the board by puting two cells randomly
@@ -222,7 +222,7 @@ insertNewCell b = do
            let (Board b') = b
                c1 :: ([Int] -> [Int]) -> Line -> Line
                c1 = coerce
-           pure $ Just $ Board $ (inPos row . c1 . inPos col) (const value) $ b'
+           pure $ Just $ Board $ (inPos row . c1 . inPos col) (const value) b'
 
 -- | generate a new cell according to the game rule
 --   we have 90% probability of getting a cell of value 2,
