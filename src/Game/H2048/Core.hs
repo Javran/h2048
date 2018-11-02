@@ -62,6 +62,12 @@ mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
 
 -- | a list of 4 elements, stands for
 --   one column / row in the board
+{-
+  TODO:
+  alternatively Line could be a ~ Int => (a,a,a,a)
+  and Board being a ~ Line -> (a,a,a,a),
+  we should be able to utilize fixed-vector.
+-}
 newtype Line = Line { unLine :: [Int] } deriving (Eq, Show)
 
 mkLine :: [Int] -> Line
