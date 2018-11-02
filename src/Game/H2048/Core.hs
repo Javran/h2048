@@ -86,6 +86,18 @@ data GameState
   | Lose      -- ^ can make no step further, no cell reaches 2048
   | Alive     -- ^ playing
   deriving (Enum, Eq, Show)
+{-
+  notice that we don't need GameState at all:
+  - at any point in time, the game is won when we have a cell that contains a value
+    >= 2048
+  - when there are possible moves, we are not done yet,
+    otherwise the game is lost.
+
+  therefore we could probably return a list of pairs of
+  (<move>, <board-after-that-move), so making the next move is
+  as simple as picking a move and replace state with `snd` part of that move.
+  and if the list is empty, we know there are no more moves and we are done.
+-}
 
 -- | move direction
 data Dir
