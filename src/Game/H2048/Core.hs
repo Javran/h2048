@@ -21,7 +21,7 @@ The routine for using this library would be:
 4. examine if the player wins / loses / is still alive using `gameState`.
 
 -}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections, FlexibleContexts #-}
 module Game.H2048.Core
   ( Dir (..)
   , BoardUpdateResult
@@ -101,32 +101,23 @@ instance Default Board where
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
-compactLine :: Line -> Writer (Sum Int) Line
-compactLine (Line l) = runKleisli
-                    -- remove zeros
-                  ( filter (/=0)
-                    -- do merge and collect score
-                ^>> Kleisli merge
-                    -- restore zeros, on the "fst" part
-                >>^ mkLine) l
-
+compactLine :: MonadWriter (Sum Int) m => Line -> m Line
+compactLine (Line l) = mkLine <$> merge (filter (/= 0) l)
     where
-        merge :: [Int] -> Writer (Sum Int) [Int]
-        merge (x:y:xs) =
-            if x == y
-                -- only place where score are collected.
-                then do
-                    -- try to merge first two elements,
-                    -- and process rest of it.
-                    xs' <- merge xs
-                    tell . Sum $ x + y
-                    return $ (x+y) : xs'
-                else do
-                    -- just skip the first one,
-                    -- and process rest of it.
-                    xs' <- merge (y:xs)
-                    return $ x : xs'
-        merge r = return r
+      merge r = case r of
+        (x:y:xs) ->
+          if x == y
+            -- only place where score are collected.
+            then do
+              -- try to merge first two elements,
+              -- and process rest of it.
+              tell . Sum $ x + y
+              ((x+y) :) <$> merge xs
+            else
+              -- just skip the first one,
+              -- and process rest of it.
+              (x:) <$> merge (y:xs)
+        _ -> pure r
 
 -- | update the board taking a direction,
 --   a 'BoardUpdated' is returned on success,
