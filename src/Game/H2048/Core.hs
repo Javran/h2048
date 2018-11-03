@@ -146,14 +146,8 @@ updateBoard d (Board board) = do
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
         (board',score) = runWriter $
-                         runKleisli
-                               -- transform to a "gravitize to the left" problem
-                             ( rTransL
-                               -- gravitize to the left
-                           ^>> Kleisli (mapM compactLine)
-                               -- transform back
-                           >>^ rTransR) board
-
+          rTransR <$> mapM compactLine (rTransL board)
+          
         -- rTrans for "a list of reversible transformations, that will be performed in order"
         -- TODO: we could probably keep a pair of functions as monoid
         -- (i.e. `(f,g)` which defines an iso), this allows us to fully eliminate
