@@ -107,6 +107,9 @@ data Dir
   | DRight
   deriving (Enum, Bounded, Eq, Ord, Show)
 
+allDirs :: [Dir]
+allDirs = [minBound .. maxBound]
+
 -- | the initial board before a game started
 instance Default Board where
     def = Board $ replicate 4 def
@@ -208,7 +211,7 @@ gameState (Board b)
         = Alive
     where
         isWin = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
-        noFurther = all (isNothing . (`updateBoard` Board b)) universe
+        noFurther = all (isNothing . (`updateBoard` Board b)) allDirs
 
 -- | initialize the board by puting two cells randomly
 --   into the board.

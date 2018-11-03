@@ -11,17 +11,10 @@ helper functions used when implementing game logic
 -}
 module Game.H2048.Utils
   ( inPos
-  , universe
   )
 where
 
-import Control.Lens hiding (universe)
-
--- provide utilities
-
--- | all possible values for a Bounded Enum
-universe :: (Bounded e, Enum e) => [e]
-universe = [minBound .. maxBound]
+import Control.Lens
 
 -- | modify a specified element in a list,
 --   this is a simple semantic editor combinator
