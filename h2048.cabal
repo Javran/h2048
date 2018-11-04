@@ -39,6 +39,7 @@ executable h2048-simple
   ghc-options:         -Wall
   build-depends:       base >= 4
                      , mtl
+                     , transformers
                      , MonadRandom
                      , text
                      , lens
@@ -56,6 +57,7 @@ Test-Suite test
   ghc-options:         -Wall
   build-depends:       base >= 4
                      , mtl
+                     , transformers
                      , MonadRandom
                      , text
                      , lens
