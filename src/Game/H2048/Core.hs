@@ -145,9 +145,11 @@ updateBoard d (Board board) = do
         -- transform boards so that
         -- we only focus on "gravitize to the left".
         -- and convert back after the gravitization is done.
-        (board',score) = runWriter $
-          rTransR <$> mapM compactLine (rTransL board)
+        (board',score) = runWriter $ withIso (c . rTrans . from c) $
+          \g f -> g <$> mapM compactLine (f board)
 
+        c :: Iso' [Line] [[Int]]
+        c = coerced
         rTrans :: Iso' [[Int]] [[Int]]
         rTrans =
             case d of
@@ -158,11 +160,6 @@ updateBoard d (Board board) = do
           where
             sRight = involuted (map reverse)
             sUp = involuted transpose
-
-        c' :: ([[Int]] -> [[Int]]) -> ([Line] -> [Line])
-        c' = coerce
-        rTransL = c' (view rTrans)
-        rTransR = c' (view (from rTrans))
 
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
