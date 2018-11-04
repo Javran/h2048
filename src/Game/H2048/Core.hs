@@ -45,10 +45,10 @@ import Data.List
 import Data.Maybe
 import Data.Default
 
-import Control.Arrow
 import Control.Monad.Writer
 import Control.Monad.Random
 import Data.Coerce
+import Control.Lens
 
 import Game.H2048.Utils
 
@@ -147,27 +147,18 @@ updateBoard d (Board board) = do
         -- and convert back after the gravitization is done.
         (board',score) = runWriter $
           rTransR <$> mapM compactLine (rTransL board)
-          
-        -- rTrans for "a list of reversible transformations, that will be performed in order"
-        -- TODO: we could probably keep a pair of functions as monoid
-        -- (i.e. `(f,g)` which defines an iso), this allows us to fully eliminate
-        -- List structure which is unnecessary.
-        rTrans :: [[Line] -> [Line]]
-        rTrans = coerce (
-            case d of
-              -- the problem itself is "gravitize to the left"
-              DLeft  -> []
-              -- we use a mirror
-              DRight -> [map reverse]
-              -- diagonal mirror
-              DUp    -> [transpose]
-              -- same as DUp case + DRight case
-              DDown  -> [transpose, map reverse]
-              :: [[[Int]] -> [[Int]]])
+
+        rTrans :: Iso' [[Int]] [[Int]]
+        rTrans = case d of
+          DLeft -> iso id id
+          DRight -> iso (map reverse) (map reverse)
+          DUp -> iso transpose transpose
+          DDown -> iso transpose transpose . iso (map reverse) (map reverse)
 
         -- how we convert it "into" and "back"
-        rTransL = foldl (flip (.)) id rTrans
-        rTransR = foldr       (.)  id rTrans
+        rTransL, rTransR :: [Line] -> [Line]
+        rTransL = coerce (view rTrans :: [[Int]] -> [[Int]])
+        rTransR = coerce (view (from rTrans) :: [[Int]] -> [[Int]])
 
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
