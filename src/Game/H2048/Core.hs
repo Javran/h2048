@@ -149,13 +149,17 @@ updateBoard d (Board board) = do
           rTransR <$> mapM compactLine (rTransL board)
 
         rTrans :: Iso' [[Int]] [[Int]]
-        rTrans = case d of
-          DLeft -> iso id id
-          DRight -> iso (map reverse) (map reverse)
-          DUp -> iso transpose transpose
-          DDown -> iso transpose transpose . iso (map reverse) (map reverse)
+        rTrans =
+            case d of
+              DLeft -> id
+              DRight -> sRight
+              DUp -> sUp
+              DDown -> sUp . sRight
+          where
+            selfIso f = iso f f
+            sRight = selfIso (map reverse)
+            sUp = selfIso transpose
 
-        -- how we convert it "into" and "back"
         rTransL, rTransR :: [Line] -> [Line]
         rTransL = coerce (view rTrans :: [[Int]] -> [[Int]])
         rTransR = coerce (view (from rTrans) :: [[Int]] -> [[Int]])
