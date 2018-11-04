@@ -112,7 +112,7 @@ allDirs = [minBound .. maxBound]
 
 -- | the initial board before a game started
 instance Default Board where
-    def = Board $ replicate 4 def
+    def = mkBoard []
 
 -- | move each non-zero element to their leftmost possible
 --   position while preserving the order
