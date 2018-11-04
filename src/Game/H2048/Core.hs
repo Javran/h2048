@@ -26,12 +26,12 @@ module Game.H2048.Core
   ( Dir (..)
   , BoardUpdateResult
     -- TODO: shouldn't expose constructor.
-  , Board(..)
+  , Board
   , mkBoard
+  , fromBoard
   , Line
   , mkLine
-  , unLine
-  , GameState (..)
+  , GameState(..)
   , gameState
   , compactLine
   , initGameBoard
@@ -60,6 +60,9 @@ newtype Board = Board [Line]
 mkBoard :: [[Int]] -> Board
 mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
 
+fromBoard :: Board -> [[Int]]
+fromBoard = coerce
+
 -- | a list of 4 elements, stands for
 --   one column / row in the board
 {-
@@ -68,7 +71,7 @@ mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
   and Board being a ~ Line -> (a,a,a,a),
   we should be able to utilize fixed-vector.
 -}
-newtype Line = Line { unLine :: [Int] } deriving (Eq, Show)
+newtype Line = Line [Int] deriving (Eq, Show)
 
 mkLine :: [Int] -> Line
 mkLine = Line . take 4 . (++ repeat 0)

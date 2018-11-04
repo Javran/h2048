@@ -13,9 +13,7 @@ module Game.H2048.UI.Simple
   ( drawBoard
   , playGame
   , mainSimple
-  , Board(..)
-    -- TODO: hide
-  , unLine
+  , Board
   )
 where
 
@@ -35,7 +33,8 @@ helpString =  "'i'/'k'/'j'/'l' to move, 'q' to quit."
 
 -- | pretty print the board to stdout
 drawBoard :: Board -> IO ()
-drawBoard (Board board) = do
+drawBoard bd = do
+    let board = fromBoard bd
     {-
      when outputed, a cell will look like:
 
@@ -64,8 +63,7 @@ drawBoard (Board board) = do
                            then replicate cellWidth ' '
                            else printf " %4d " c
 
-        drawRow line = do
-            let row = unLine line
+        drawRow row = do
             -- prints "| <cell1> | <cell2> | ... |"
             putChar '|'
             mapM_ (prettyCell >>> putStr >>> (>> putChar '|') ) row

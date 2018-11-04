@@ -70,7 +70,7 @@ gameStateTestcases =
 gameStateTests :: Test
 gameStateTests = TestLabel "gameState" . TestList . map
         (\(lbl, expected, inp) ->
-            let bd = Board $ map mkLine inp
+            let bd = mkBoard inp
             in TestLabel lbl (expected ~=? gameState bd))
         $ gameStateTestcases
 
