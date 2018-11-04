@@ -156,13 +156,13 @@ updateBoard d (Board board) = do
               DUp -> sUp
               DDown -> sUp . sRight
           where
-            selfIso f = iso f f
-            sRight = selfIso (map reverse)
-            sUp = selfIso transpose
+            sRight = involuted (map reverse)
+            sUp = involuted transpose
 
-        rTransL, rTransR :: [Line] -> [Line]
-        rTransL = coerce (view rTrans :: [[Int]] -> [[Int]])
-        rTransR = coerce (view (from rTrans) :: [[Int]] -> [[Int]])
+        c' :: ([[Int]] -> [[Int]]) -> ([Line] -> [Line])
+        c' = coerce
+        rTransL = c' (view rTrans)
+        rTransR = c' (view (from rTrans))
 
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
