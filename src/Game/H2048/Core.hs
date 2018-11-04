@@ -123,11 +123,11 @@ compactLine (Line l) = mkLine <$> merge (filter (/= 0) l)
         (x:y:xs) ->
           if x == y
             -- only place where score are collected.
-            then do
+            then
               -- try to merge first two elements,
               -- and process rest of it.
-              tell . Sum $ x + y
-              ((x+y) :) <$> merge xs
+              let s = x+y
+              in tell (Sum s) >> (s:) <$> merge xs
             else
               -- just skip the first one,
               -- and process rest of it.
