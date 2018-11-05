@@ -166,7 +166,7 @@ updateBoard d (Board board) = do
             sUp = involuted transpose
 
 nextMoves :: Board -> [(Dir, BoardUpdateResult)]
-nextMoves b = mapMaybe (\d -> updateBoard d b >>= \res -> pure (d, res)) allDirs
+nextMoves b = mapMaybe (\d -> (d,) <$> updateBoard d b) allDirs
 
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
