@@ -38,6 +38,7 @@ module Game.H2048.Core
   , updateBoard
   , insertNewCell
   , generateNewCell
+  , nextMoves
   )
 where
 
@@ -163,6 +164,9 @@ updateBoard d (Board board) = do
           where
             sRight = involuted (map reverse)
             sUp = involuted transpose
+
+nextMoves :: Board -> [(Dir, BoardUpdateResult)]
+nextMoves b = mapMaybe (\d -> updateBoard d b >>= \res -> pure (d, res)) allDirs
 
 -- | find blank cells in a board,
 --   return coordinates for each blank cell
