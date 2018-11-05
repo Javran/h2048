@@ -193,7 +193,7 @@ blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
 --   or 'Lose' if we can move no further
 --   otherwise, 'Alive'.
 gameState :: Board -> GameState
-gameState (Board b)
+gameState nb@(Board b)
     | isWin
         = if noFurther
               then Win
@@ -204,7 +204,7 @@ gameState (Board b)
         = Alive
     where
         isWin = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
-        noFurther = all (isNothing . (`updateBoard` Board b)) allDirs
+        noFurther = null (nextMoves nb)
 
 -- | initialize the board by puting two cells randomly
 --   into the board.
