@@ -67,10 +67,13 @@ fromBoard = coerce
 -- | a list of 4 elements, stands for
 --   one column / row in the board
 {-
-  TODO:
-  alternatively Line could be a ~ Int => (a,a,a,a)
+  Alternatively Line could be a ~ Int => (a,a,a,a)
   and Board being a ~ Line -> (a,a,a,a),
   we should be able to utilize fixed-vector.
+
+  but here we don't have a user-friendly set of tools
+  to deal with traversal (at least not that I'm aware of),
+  so I guess for now we can still stick to List.
 -}
 newtype Line = Line [Int] deriving (Eq, Show)
 
@@ -141,6 +144,8 @@ compactLine (Line l) = mkLine <$> merge (filter (/= 0) l)
 -- | update the board taking a direction,
 --   a 'BoardUpdated' is returned on success,
 --   if this update does nothing, that means a failure (Nothing)
+--   note that here "update" does not include adding one random cell of 2 or 4
+--   into the board
 updateBoard :: Dir -> Board -> Maybe BoardUpdateResult
 updateBoard d (Board board) = do
     guard $ board /= board'
