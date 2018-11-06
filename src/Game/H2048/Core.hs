@@ -146,24 +146,22 @@ updateBoard d (Board board) = do
     guard $ board /= board'
     pure (Board board', getSum score)
   where
-        -- transform boards so that
-        -- we only focus on "gravitize to the left".
-        -- and convert back after the gravitization is done.
-        (board',score) = runWriter $ withIso (c . rTrans . from c) $
-          \g f -> g <$> mapM compactLine (f board)
-
-        c :: Iso' [Line] [[Int]]
-        c = coerced
-        rTrans :: Iso' [[Int]] [[Int]]
-        rTrans =
-            case d of
-              DLeft -> id
-              DRight -> sRight
-              DUp -> sUp
-              DDown -> sUp . sRight
-          where
-            sRight = involuted (map reverse)
-            sUp = involuted transpose
+    -- transform boards so that
+    -- we only focus on "gravitize to the left".
+    -- and convert back after the gravitization is done.
+    (board',score) = runWriter $ withIso (c . rTrans . from c) $
+      \g f -> g <$> mapM compactLine (f board)
+    c :: Iso' [Line] [[Int]]
+    c = coerced
+    rTrans :: Iso' [[Int]] [[Int]]
+    rTrans = case d of
+        DLeft -> id
+        DRight -> sRight
+        DUp -> sUp
+        DDown -> sUp . sRight
+      where
+        sRight = involuted (map reverse)
+        sUp = involuted transpose
 
 nextMoves :: Board -> [(Dir, BoardUpdateResult)]
 nextMoves b = mapMaybe (\d -> (d,) <$> updateBoard d b) allDirs
