@@ -25,7 +25,6 @@ The routine for using this library would be:
 module Game.H2048.Core
   ( Dir (..)
   , BoardUpdateResult
-    -- TODO: shouldn't expose constructor.
   , Board
   , mkBoard
   , fromBoard
@@ -37,7 +36,6 @@ module Game.H2048.Core
   , initGameBoard
   , updateBoard
   , insertNewCell
-  , generateNewCell
   , nextMoves
   )
 where
