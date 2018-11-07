@@ -46,6 +46,7 @@ import Data.List
 import Data.Maybe
 import Data.Default
 
+import Control.Applicative
 import Control.Monad.Writer
 import Control.Monad.Random
 import Data.Coerce
@@ -212,7 +213,7 @@ gameState nb@(Board b)
 -- | initialize the board by puting two cells randomly
 --   into the board.
 --   See 'generateNewCell' for the cell generating rule.
-initGameBoard :: (MonadRandom r) => r (Board, Int)
+initGameBoard :: (MonadRandom m, Alternative m) => m (Board, Int)
 initGameBoard =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
@@ -220,23 +221,19 @@ initGameBoard =
     (,0) . fromJust <$> (insertNewCell def >>= (insertNewCell . fromJust))
 
 -- | try to insert a new cell randomly
-insertNewCell :: (MonadRandom r) => Board -> r (Maybe Board)
+insertNewCell :: (MonadRandom r, Alternative r) => Board -> r (Maybe Board)
 insertNewCell b = do
     -- get a list of coordinates of blank cells
     let availableCells = blankCells b
-
-    if null availableCells
-       -- cannot find any empty cell, then fail
-       then return Nothing
-       else do
-           -- randomly pick up an available cell by choosing index
-           choice <- getRandomR (0, length availableCells - 1)
-           let (row,col) = availableCells !! choice
-           value <- generateNewCell
-           let (Board b') = b
-               c1 :: ([Int] -> [Int]) -> Line -> Line
-               c1 = coerce
-           pure $ Just $ Board $ (inPos row . c1 . inPos col) (const value) b'
+    guard $ (not . null) availableCells
+    -- randomly pick up an available cell by choosing index
+    choice <- getRandomR (0, length availableCells - 1)
+    let (row,col) = availableCells !! choice
+    value <- generateNewCell
+    let (Board b') = b
+        c1 :: ([Int] -> [Int]) -> Line -> Line
+        c1 = coerce
+    pure $ Just $ Board $ (inPos row . c1 . inPos col) (const value) b'
 
 -- | generate a new cell according to the game rule
 --   we have 90% probability of getting a cell of value 2,
