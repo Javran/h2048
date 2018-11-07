@@ -76,9 +76,7 @@ playGame (b,score) = do
         -- when game over
     let endGame (b',score') win = do
             drawBoard b'
-            putStrLn $ if win
-                           then "You win"
-                           else "Game over"
+            putStrLn $ if win then "You won" else "Game over"
             _ <- printf "Final score: %d\n" score'
             hFlush stdout
         -- handle user move, print the board together with current score,
@@ -87,9 +85,9 @@ playGame (b,score) = do
         -- * return Just <key>   if one of "ijkl" is pressed
         handleUserMove win = do
             let scoreFormat =
-                    if win
-                        then "You win, current score: %d\n"
-                        else "Current score: %d\n"
+                  if win
+                    then "You win, current score: %d\n"
+                    else "Current score: %d\n"
             drawBoard b
             _ <- printf scoreFormat score
             hFlush stdout
@@ -98,24 +96,17 @@ playGame (b,score) = do
             hFlush stdout
 
             -- TODO: customizable
-            maybeKey <- case c of
-                     'q' -> return Nothing
-                     'i' -> putStrLn "Up"    >> return (Just DUp)
-                     'k' -> putStrLn "Down"  >> return (Just DDown)
-                     'j' -> putStrLn "Left"  >> return (Just DLeft)
-                     'l' -> putStrLn "Right" >> return (Just DRight)
-                     _ -> do
-                             putStrLn helpString
-                             return $ error "Unreachable code: unhandled invalid user input"
-
-            if c `elem` "qijkl"
-               -- user will not be on this branch
-               -- if an invalid key is pressed
-               then return maybeKey
-               -- user will be trapped in "handleUserMove" unless
-               -- a valid key is given. So the error above (the wildcard case)
-               -- can never be reached
-               else handleUserMove win
+            case c of
+              'q' -> return Nothing
+              'i' -> putStrLn "Up"    >> return (Just DUp)
+              'k' -> putStrLn "Down"  >> return (Just DDown)
+              'j' -> putStrLn "Left"  >> return (Just DLeft)
+              'l' -> putStrLn "Right" >> return (Just DRight)
+              _ -> do
+                -- user will not be on this branch
+                -- if an invalid key is pressed
+                putStrLn helpString
+                handleUserMove win
         handleGame =
             maybe
                 -- user quit
