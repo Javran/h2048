@@ -27,6 +27,8 @@ compactLineTests = TestLabel "compactLine" . TestList . map
              second getSum (runWriter (compactLine (mkLine inp))))
         $ compactLineTestcases
 
+-- TODO: move tests
+
 -- | the expected behavior of 'gameState'
 gameStateTestcases :: [ (String, GameState, [[Int]]) ]
 gameStateTestcases =
