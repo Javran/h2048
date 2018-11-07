@@ -162,7 +162,7 @@ updateBoard d (Board board) = do
         DLeft -> id
         DRight -> sRight
         DUp -> sUp
-        DDown -> sUp . sRight
+        DDown -> sRight . sUp
       where
         sRight = involuted (map reverse)
         sUp = involuted transpose
