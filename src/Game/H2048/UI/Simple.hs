@@ -9,6 +9,7 @@
 A simple CLI implemention of Game 2048
 
 -}
+{-# LANGUAGE NamedFieldPuns #-}
 module Game.H2048.UI.Simple
   ( drawBoard
   , playGame
@@ -126,16 +127,10 @@ playGame (b,score) = do
                               (Just newB) <- insertNewCell newBoard
                               -- keep going, accumulate score
                               playGame (newB, score + scoreObtained)))
-
-    case gameState b of
-      Win ->
-          liftIO $ endGame (b,score) True
-      Lose ->
-          liftIO $ endGame (b,score) False
-      WinAlive ->
-          liftIO (handleUserMove True ) >>= handleGame
-      Alive ->
-          liftIO (handleUserMove False) >>= handleGame
+    let GSN {hasWon, isAlive} = gameStateNew b
+    if isAlive
+      then liftIO (handleUserMove hasWon) >>= handleGame
+      else liftIO (endGame (b, score) hasWon)
 
 -- | the entry of Simple UI
 mainSimple :: IO ()

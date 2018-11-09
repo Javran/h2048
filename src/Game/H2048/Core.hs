@@ -30,13 +30,9 @@ module Game.H2048.Core
   , fromBoard
   , Line
   , mkLine
-  , GameState(..)
-  , gameState
 
   , gameStateNew
-  , GameStateNew
-  , hasWon
-  , isAlive
+  , GameStateNew(..)
   
   , compactLine
   , initGameBoard
@@ -63,13 +59,10 @@ import Game.H2048.Utils
 --   where i >= 1.
 newtype Board = Board [Line]
 
-newtype GameStateNew = GSN (Bool, Bool)
-
-hasWon :: GameStateNew -> Bool
-hasWon = fst . coerce @GameStateNew @(Bool, Bool)
-
-isAlive :: GameStateNew -> Bool
-isAlive = snd . coerce @GameStateNew @(Bool, Bool)
+data GameStateNew = GSN
+  { hasWon :: Bool
+  , isAlive :: Bool
+  }
 
 mkBoard :: [[Int]] -> Board
 mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
@@ -204,27 +197,8 @@ blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
     -- tag cells with column num
     colTagged = map (zip [0..] . (coerce :: Line -> [Int])) b
 
--- | return current game state.
---   'Win' if any cell is equal to or greater than 2048
---   or 'Lose' if we can move no further
---   otherwise, 'Alive'.
-gameState :: Board -> GameState
-gameState nb@(Board b)
-    | hasWon
-        = if noFurther
-              then Win
-              else WinAlive
-    | noFurther
-        = Lose
-    | otherwise
-        = Alive
-    where
-        hasWon = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
-        noFurther = null (nextMoves nb)
-
-
 gameStateNew :: Board -> GameStateNew
-gameStateNew nb@(Board b) = GSN (hw, alv)
+gameStateNew nb@(Board b) = GSN hw alv
   where
     hw = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
     alv = not . null . nextMoves $ nb
