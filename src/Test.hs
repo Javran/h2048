@@ -29,57 +29,57 @@ compactLineTests = TestLabel "compactLine" . TestList . map
 
 -- TODO: move tests
 
-gWonAlive, gWon, gAlive, gLose :: GameStateNew
-gWonAlive = GSN True True
-gWon = GSN True False
-gAlive = GSN False True
-gLose = GSN False False
+gWonAlive, gWon, gAlive, gLose :: GameState
+gWonAlive = GS True True
+gWon = GS True False
+gAlive = GS False True
+gLose = GS False False
 
 -- | the expected behavior of 'gameState'
-gameStateTestcases :: [ (String, GameStateNew, [[Int]]) ]
+gameStateTestcases :: [(String, GameState, [[Int]])]
 gameStateTestcases =
     [ ( "trivial win, alive",
         gWonAlive  , [ [ 2048, 2048, 2048, 2048 ]
-                   , [    0,    0,    0,    0 ]
-                   , [    0,    0,    0,    0 ]
-                   , [    0,    0,    0,    0 ] ] )
+                     , [    0,    0,    0,    0 ]
+                     , [    0,    0,    0,    0 ]
+                     , [    0,    0,    0,    0 ] ] )
     , ( "more than 2048 (might not happen in practice)",
         gWon       , [ [  256,    2,    4,    8 ]
-                   , [   16,   32,   64,  128 ]
-                   , [  256,  512, 1024,    8 ]
-                   , [   16, 4096,  128,   64 ] ] )
+                     , [   16,   32,   64,  128 ]
+                     , [  256,  512, 1024,    8 ]
+                     , [   16, 4096,  128,   64 ] ] )
     , ( "no more move but win",
         gWon       , [ [    2,    4,    2,    4 ]
-                   , [    4, 2048,    4,    2 ]
-                   , [    2,    4,    2,    4 ]
-                   , [    4,    2,    4,    2 ] ] )
+                     , [    4, 2048,    4,    2 ]
+                     , [    2,    4,    2,    4 ]
+                     , [    4,    2,    4,    2 ] ] )
     , ( "trivial alive",
         gAlive     , [ [    2,    0,    0,    8 ]
-                   , [    4,    0,    0,    8 ]
-                   , [    4,    0,    0,    8 ]
-                   , [ 1024,  512,  128,   64 ] ] )
+                     , [    4,    0,    0,    8 ]
+                     , [    4,    0,    0,    8 ]
+                     , [ 1024,  512,  128,   64 ] ] )
     , ( "no empty cell but still alive",
         gAlive     , [ [  512,  128,  512,  128 ]
-                   , [  128,  512,  128,  512 ]
-                   , [  512,  128,  512,  128 ]
-                   , [  128,  512,  128,  128 ] ] )
+                     , [  128,  512,  128,  512 ]
+                     , [  512,  128,  512,  128 ]
+                     , [  128,  512,  128,  128 ] ] )
     , ( "trivial lose 1",
         gLose      , [ [    2,    4,    2,    4 ]
-                   , [    4,    2,    4,    2 ]
-                   , [    2,    4,    2,    4 ]
-                   , [    4,    2,    4,    2 ] ] )
+                     , [    4,    2,    4,    2 ]
+                     , [    2,    4,    2,    4 ]
+                     , [    4,    2,    4,    2 ] ] )
     , ( "trivial lose 2",
         gLose      , [ [    2,    8,   32,    2 ]
-                   , [    4,    2,    8,    4 ]
-                   , [   32,   16,  128,   16 ]
-                   , [    4,    8,    4,    2 ] ] )
+                     , [    4,    2,    8,    4 ]
+                     , [   32,   16,  128,   16 ]
+                     , [    4,    8,    4,    2 ] ] )
     ]
 
 gameStateTests :: Test
 gameStateTests = TestLabel "gameState" . TestList . map
         (\(lbl, expected, inp) ->
             let bd = mkBoard inp
-            in TestLabel lbl (expected ~=? gameStateNew bd))
+            in TestLabel lbl (expected ~=? gameState bd))
         $ gameStateTestcases
 
 -- | run testcase and quit immediately after a failure

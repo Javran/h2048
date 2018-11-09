@@ -31,8 +31,8 @@ module Game.H2048.Core
   , Line
   , mkLine
 
-  , gameStateNew
-  , GameStateNew(..)
+  , gameState
+  , GameState(..)
   
   , compactLine
   , initGameBoard
@@ -59,7 +59,7 @@ import Game.H2048.Utils
 --   where i >= 1.
 newtype Board = Board [Line]
 
-data GameStateNew = GSN
+data GameState = GS
   { hasWon :: Bool
   , isAlive :: Bool
   } deriving (Eq, Show)
@@ -92,13 +92,6 @@ instance Default Line where
 -- | result after a successful 'updateBoard'
 type BoardUpdateResult = (Board, Int)
 
--- | current game state, see also 'gameState'
-data GameState
-  = Win       -- ^ win, can make no step further
-  | WinAlive  -- ^ win, and still alive
-  | Lose      -- ^ can make no step further, no cell reaches 2048
-  | Alive     -- ^ playing
-  deriving (Enum, Eq, Show)
 {-
   notice that we don't need GameState at all:
   - at any point in time, the game is won when we have a cell that contains a value
@@ -197,8 +190,8 @@ blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
     -- tag cells with column num
     colTagged = map (zip [0..] . (coerce :: Line -> [Int])) b
 
-gameStateNew :: Board -> GameStateNew
-gameStateNew nb@(Board b) = GSN hw alv
+gameState :: Board -> GameState
+gameState nb@(Board b) = GS hw alv
   where
     hw = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
     alv = not . null . nextMoves $ nb

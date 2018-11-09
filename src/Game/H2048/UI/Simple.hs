@@ -127,7 +127,7 @@ playGame (b,score) = do
                               (Just newB) <- insertNewCell newBoard
                               -- keep going, accumulate score
                               playGame (newB, score + scoreObtained)))
-    let GSN {hasWon, isAlive} = gameStateNew b
+    let GS {hasWon, isAlive} = gameState b
     if isAlive
       then liftIO (handleUserMove hasWon) >>= handleGame
       else liftIO (endGame (b, score) hasWon)
