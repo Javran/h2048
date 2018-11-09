@@ -62,7 +62,7 @@ newtype Board = Board [Line]
 data GameStateNew = GSN
   { hasWon :: Bool
   , isAlive :: Bool
-  }
+  } deriving (Eq, Show)
 
 mkBoard :: [[Int]] -> Board
 mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
