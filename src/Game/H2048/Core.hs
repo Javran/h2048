@@ -21,7 +21,7 @@ The routine for using this library would be:
 4. examine if the player wins / loses / is still alive using `gameState`.
 
 -}
-{-# LANGUAGE TupleSections, FlexibleContexts #-}
+{-# LANGUAGE TupleSections, FlexibleContexts, TypeApplications #-}
 module Game.H2048.Core
   ( Dir (..)
   , BoardUpdateResult
@@ -32,6 +32,12 @@ module Game.H2048.Core
   , mkLine
   , GameState(..)
   , gameState
+
+  , gameStateNew
+  , GameStateNew
+  , hasWon
+  , isAlive
+  
   , compactLine
   , initGameBoard
   , updateBoard
@@ -56,6 +62,14 @@ import Game.H2048.Utils
 --   each element should be either zero or 2^i
 --   where i >= 1.
 newtype Board = Board [Line]
+
+newtype GameStateNew = GSN (Bool, Bool)
+
+hasWon :: GameStateNew -> Bool
+hasWon = fst . coerce @GameStateNew @(Bool, Bool)
+
+isAlive :: GameStateNew -> Bool
+isAlive = snd . coerce @GameStateNew @(Bool, Bool)
 
 mkBoard :: [[Int]] -> Board
 mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
@@ -207,6 +221,13 @@ gameState nb@(Board b)
     where
         hasWon = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
         noFurther = null (nextMoves nb)
+
+
+gameStateNew :: Board -> GameStateNew
+gameStateNew nb@(Board b) = GSN (hw, alv)
+  where
+    hw = (any (>= 2048) . concatMap (coerce :: Line -> [Int])) b
+    alv = not . null . nextMoves $ nb
 
 -- | initialize the board by puting two cells randomly
 --   into the board.
