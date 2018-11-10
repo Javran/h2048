@@ -21,7 +21,7 @@ The routine for using this library would be:
 4. examine if the player wins / loses / is still alive using `gameState`.
 
 -}
-{-# LANGUAGE TupleSections, FlexibleContexts, TypeApplications #-}
+{-# LANGUAGE TupleSections, FlexibleContexts, RankNTypes #-}
 module Game.H2048.Core
   ( Dir (..)
   , BoardUpdateResult
@@ -153,19 +153,22 @@ updateBoard d (Board board) = do
     -- transform boards so that
     -- we only focus on "gravitize to the left".
     -- and convert back after the gravitization is done.
-    (board',score) = runWriter $ withIso (c . rTrans . from c) $
+    (board',score) = runWriter $ withIso (getIso d) $
       \g f -> g <$> mapM compactLine (f board)
+
+getIso :: Dir -> Iso' [Line] [Line]
+getIso d = c . ik . from c
+  where
+    ik = case d of
+      DLeft -> id
+      DRight -> sRight
+      DUp -> sUp
+      DDown -> sRight . sUp
     c :: Iso' [Line] [[Int]]
     c = coerced
-    rTrans :: Iso' [[Int]] [[Int]]
-    rTrans = case d of
-        DLeft -> id
-        DRight -> sRight
-        DUp -> sUp
-        DDown -> sRight . sUp
-      where
-        sRight = involuted (map reverse)
-        sUp = involuted transpose
+
+    sRight = involuted (map reverse)
+    sUp = involuted transpose
 
 nextMoves :: Board -> [(Dir, BoardUpdateResult)]
 nextMoves b = mapMaybe (\d -> (d,) <$> updateBoard d b) allDirs
