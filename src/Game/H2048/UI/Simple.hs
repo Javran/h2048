@@ -23,6 +23,7 @@ import Data.List
 import Text.Printf
 import Control.Monad.IO.Class
 import Control.Monad.Random
+import Control.Applicative
 import Control.Arrow
 import System.IO
 
@@ -72,65 +73,64 @@ drawBoard bd = do
             putStrLn horizSeparator
 
 -- | play game on a given board until user quits or game ends
-playGame :: (RandomGen g) => (Board, Int) -> RandT g IO ()
-playGame (b,score) = do
-        -- when game over
-    let endGame (b',score') win = do
-            drawBoard b'
-            putStrLn $ if win then "You won" else "Game over"
-            _ <- printf "Final score: %d\n" score'
-            hFlush stdout
-        -- handle user move, print the board together with current score,
-        -- return the next user move:
-        -- * return Nothing only if user has pressed "q"
-        -- * return Just <key>   if one of "ijkl" is pressed
-        handleUserMove win = do
-            let scoreFormat =
-                  if win
-                    then "You win, current score: %d\n"
-                    else "Current score: %d\n"
-            drawBoard b
-            _ <- printf scoreFormat score
-            hFlush stdout
-            c <- getChar
-            putStrLn ""
-            hFlush stdout
-
-            -- TODO: customizable
-            case c of
-              'q' -> return Nothing
-              'i' -> putStrLn "Up"    >> return (Just DUp)
-              'k' -> putStrLn "Down"  >> return (Just DDown)
-              'j' -> putStrLn "Left"  >> return (Just DLeft)
-              'l' -> putStrLn "Right" >> return (Just DRight)
-              _ -> do
-                -- user will not be on this branch
-                -- if an invalid key is pressed
-                putStrLn helpString
-                handleUserMove win
-        handleGame =
-            maybe
-                -- user quit
-                (return ())
-                -- user next move
-                  -- 1. update the board according to user move
-                ((`updateBoard` b) >>>
-                  -- 2. the update might succeed / fail
-                  maybe
-                         -- 2(a). the move is invalid, try again
-                         (liftIO (putStrLn "Invalid move") >> playGame (b,score))
-                         -- 2(b). on success, insert new cell
-                         (\(newBoard, scoreObtained) -> do
-                              -- should always succeed
-                              -- because when a successful move is done
-                              -- there is at least one empty cell in the board
-                              (Just newB) <- insertNewCell newBoard
-                              -- keep going, accumulate score
-                              playGame (newB, score + scoreObtained)))
-    let GS {hasWon, isAlive} = gameState b
+playGame :: (MonadIO m, MonadRandom m, Alternative m) => (Board, Int) -> m ()
+playGame args@(b,score) |
+  GS {hasWon, isAlive} <- gameState b =
     if isAlive
       then liftIO (handleUserMove hasWon) >>= handleGame
-      else liftIO (endGame (b, score) hasWon)
+      else liftIO (endGame args hasWon)
+ where
+   endGame (b',score') win = do
+     drawBoard b'
+     putStrLn $ if win then "You won" else "Game over"
+     _ <- printf "Final score: %d\n" score'
+     hFlush stdout
+   -- handle user move, print the board together with current score,
+   -- return the next user move:
+   -- + return Nothing only if user has pressed "q"
+   -- + return Just <key>   if one of "ijkl" is pressed
+   handleUserMove win = do
+     let scoreFormat =
+           if win
+             then "You win, current score: %d\n"
+             else "Current score: %d\n"
+     drawBoard b
+     _ <- printf scoreFormat score
+     hFlush stdout
+     c <- getChar
+     putStrLn ""
+     hFlush stdout
+     -- TODO: customizable
+     case c of
+       'q' -> pure Nothing
+       'i' -> putStrLn "Up"    >> pure (Just DUp)
+       'k' -> putStrLn "Down"  >> pure (Just DDown)
+       'j' -> putStrLn "Left"  >> pure (Just DLeft)
+       'l' -> putStrLn "Right" >> pure (Just DRight)
+       _ -> do
+         -- user will not be on this branch
+         -- if an invalid key is pressed
+         putStrLn helpString
+         handleUserMove win
+   handleGame =
+     maybe
+       -- user quit
+       (pure ())
+       -- user next move
+       -- 1. update the board according to user move
+       ((`updateBoard` b) >>>
+         -- 2. the update might succeed / fail
+         maybe
+           -- 2(a). the move is invalid, try again
+           (liftIO (putStrLn "Invalid move") >> playGame args)
+           -- 2(b). on success, insert new cell
+           (\(newBoard, scoreObtained) -> do
+               -- should always succeed
+               -- because when a successful move is done
+               -- there is at least one empty cell in the board
+               (Just newB) <- insertNewCell newBoard
+               -- keep going, accumulate score
+               playGame (newB, score + scoreObtained)))
 
 -- | the entry of Simple UI
 mainSimple :: IO ()
