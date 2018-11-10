@@ -89,9 +89,9 @@ playGame args@(b,score) |
    -- return the next user move:
    -- + return Nothing only if user has pressed "q"
    -- + return Just <key>   if one of "ijkl" is pressed
-   handleUserMove win = do
+   handleUserMove w = fix $ \self -> do
      let scoreFormat =
-           if win
+           if w
              then "You win, current score: %d\n"
              else "Current score: %d\n"
      drawBoard b
@@ -111,7 +111,7 @@ playGame args@(b,score) |
          -- user will not be on this branch
          -- if an invalid key is pressed
          putStrLn helpString
-         handleUserMove win
+         self
    handleGame =
      maybe
        -- user quit
