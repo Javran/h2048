@@ -35,10 +35,9 @@ helpString =  "'i'/'k'/'j'/'l' to move, 'q' to quit."
 
 -- | pretty print the board to stdout
 drawBoard :: Board -> IO ()
-drawBoard bd = do
-    let board = fromBoard bd
+drawBoard bd =
     {-
-     when outputed, a cell will look like:
+     a cell will be represented in the output as following:
 
        +-----+
        | xxx |
@@ -51,26 +50,26 @@ drawBoard bd = do
      * let each cell in the row print " <number> |"
      * finalize this line by printing out the horizontal "+--+--+..."
     -}
-    putStrLn horizSeparator
-    mapM_ drawRow board
-    where
-        cellWidth = length " 2048 "
-        -- build up the separator: "+--+--+....+"
-        horizSeparator' =
-            intercalate "+" (replicate 4 (replicate cellWidth '-'))
-        horizSeparator = "+" ++ horizSeparator' ++ "+"
+    putStrLn horizSeparator >>
+    mapM_ drawRow (fromBoard bd)
+  where
+    cellWidth = length " 2048 "
+    -- build up the separator: "+--+--+....+"
+    horizSeparator' = intercalate "+" (replicate 4 (replicate cellWidth '-'))
+    horizSeparator = "+" ++ horizSeparator' ++ "+"
 
-        -- pretty string for a cell (without border)
-        prettyCell c = if c == 0
-                           then replicate cellWidth ' '
-                           else printf " %4d " c
-
-        drawRow row = do
-            -- prints "| <cell1> | <cell2> | ... |"
-            putChar '|'
-            mapM_ (prettyCell >>> putStr >>> (>> putChar '|') ) row
-            putChar '\n'
-            putStrLn horizSeparator
+    -- pretty string for a cell (without border)
+    prettyCell c =
+      if c == 0
+        then replicate cellWidth ' '
+        else printf " %4d " c
+             
+    drawRow row = do
+      -- prints "| <cell1> | <cell2> | ... |"
+      putChar '|'
+      mapM_ (prettyCell >>> putStr >>> (>> putChar '|')) row
+      putChar '\n'
+      putStrLn horizSeparator
 
 -- | play game on a given board until user quits or game ends
 playGame :: (MonadIO m, MonadRandom m, Alternative m) => (Board, Int) -> m ()
