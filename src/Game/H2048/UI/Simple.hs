@@ -18,6 +18,7 @@ module Game.H2048.UI.Simple
   )
 where
 
+import Data.Maybe
 import Game.H2048.Core
 import Data.List
 import Text.Printf
@@ -127,7 +128,7 @@ playGame args@(b,score) |
                -- should always succeed
                -- because when a successful move is done
                -- there is at least one empty cell in the board
-               (Just newB) <- insertNewCell newBoard
+               newB <- fromJust <$> insertNewCell newBoard
                -- keep going, accumulate score
                playGame (newB, score + scoreObtained)))
 
