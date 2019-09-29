@@ -16,31 +16,35 @@ extra-source-files:
 
 dependencies:
 - base
+- data-default
+- lens
 - MonadRandom
 - mtl
 - text
-- lens
-- data-default
-- HUnit
 
 library:
   source-dirs: src
 
 executables:
   h2048-simple:
-    main: MainSimple.hs
-    source-dirs: src
+    main: Simple.hs
+    source-dirs: exe
+    dependencies:
+      - h2048
     ghc-options:
       - -threaded
       - -O2
       - -rtsopts
       - -with-rtsopts=-N
-      - -main-is MainSimple
+      - -main-is Simple
 
 tests:
   test:
     main: Test.hs
-    source-dirs: src
+    source-dirs: test
+    dependencies:
+      - h2048
+      - HUnit
     ghc-options:
       - -threaded
       - -O2
