@@ -1,14 +1,7 @@
-# on applications which do not require cross-platform and
-# multiple-GHC-version support. For more information and other
-# options, see:
-#
-# https://docs.haskellstack.org/en/stable/travis_ci/
-#
-# Copy these contents into the root directory of your Github project in a file
-# named .travis.yml
-
-# Use new container infrastructure to enable caching
 sudo: false
+
+# Choose a build environment
+dist: xenial
 
 # Do not choose a language; we provide our own build tools.
 language: generic
@@ -31,12 +24,7 @@ before_install:
 - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
-# Build dependencies
-- stack --no-terminal --install-ghc test --only-dependencies
+- stack --no-interleaved-output build --test --bench --no-run-tests
 
 script:
-# Build the package, its tests, and its docs and run the tests
-- stack --no-terminal test --haddock --no-haddock-deps
-
-notifications:
-  email: false
+- stack test
