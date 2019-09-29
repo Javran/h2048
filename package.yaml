@@ -1,0 +1,49 @@
+name: h2048
+version: 0.2.0.1
+github: Javran/h2048
+license: MIT
+author: Javran Cheng
+maintainer: Javran.C@gmail.com
+description: >
+  A haskell implementation of Game 2048,
+  based on <https://github.com/gabrielecirulli/2048>.
+
+category: Game
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+dependencies:
+- base
+- MonadRandom
+- mtl
+- text
+- lens
+- data-default
+- HUnit
+
+library:
+  source-dirs: src
+
+executables:
+  h2048-simple:
+    main: MainSimple.hs
+    source-dirs: src
+    ghc-options:
+      - -threaded
+      - -O2
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -main-is MainSimple
+
+tests:
+  test:
+    main: Test.hs
+    source-dirs: src
+    ghc-options:
+      - -threaded
+      - -O2
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -main-is Test

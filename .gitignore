@@ -25,3 +25,5 @@ stack.yaml.lock
 /_shake/
 /_build/
 /stack.yaml.lock
+
+/h2048.cabal

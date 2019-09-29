@@ -1,4 +1,4 @@
-module Main
+module MainSimple
 where
 
 import Game.H2048.UI.Simple

@@ -1,3 +1,4 @@
+module Test where
 import Test.HUnit
 
 import Control.Arrow
