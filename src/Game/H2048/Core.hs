@@ -28,9 +28,10 @@ module Game.H2048.Core
   , Board
   , mkBoard
   , fromBoard
+  , defBoard
   , Line
   , mkLine
-
+  , defLine
   , gameState
   , GameState(..)
   , compactLine'
@@ -44,7 +45,6 @@ where
 
 import Data.List
 import Data.Maybe
-import Data.Default
 
 import Control.Applicative
 import Control.Monad.Writer
@@ -65,7 +65,7 @@ data GameState = GS
   } deriving (Eq, Show)
 
 mkBoard :: [[Int]] -> Board
-mkBoard = Board . take 4 . (++ repeat def) . (mkLine <$>)
+mkBoard = Board . take 4 . (++ repeat defLine) . (mkLine <$>)
 
 fromBoard :: Board -> [[Int]]
 fromBoard = coerce
@@ -86,8 +86,8 @@ newtype Line = Line [Int] deriving (Eq, Show)
 mkLine :: [Int] -> Line
 mkLine = Line . take 4 . (++ repeat 0)
 
-instance Default Line where
-    def = mkLine []
+defLine :: Line
+defLine = mkLine []
 
 -- | result after a successful 'updateBoard'
 type BoardUpdateResult = (Board, Int)
@@ -117,8 +117,8 @@ allDirs :: [Dir]
 allDirs = [minBound .. maxBound]
 
 -- | the initial board before a game started
-instance Default Board where
-    def = mkBoard []
+defBoard :: Board
+defBoard = mkBoard []
 
 compactLine' :: Line -> (Sum Int, Line)
 compactLine' (Line l) = mkLine <$> merge (filter (/= 0) l)
@@ -210,7 +210,7 @@ initGameBoard =
     -- insert two cells and return the resulting board
     -- here we can safely assume that the board has at least two empty cells
     -- so that we can never have Nothing on the LHS
-    (,0) . fromJust <$> (insertNewCell def >>= (insertNewCell . fromJust))
+    (,0) . fromJust <$> (insertNewCell defBoard >>= (insertNewCell . fromJust))
 
 -- | try to insert a new cell randomly
 insertNewCell :: (MonadRandom r, Alternative r) => Board -> r (Maybe Board)

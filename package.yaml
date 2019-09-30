@@ -16,7 +16,6 @@ extra-source-files:
 
 dependencies:
 - base
-- data-default
 - lens
 - MonadRandom
 - mtl
