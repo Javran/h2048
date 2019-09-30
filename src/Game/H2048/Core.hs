@@ -64,6 +64,25 @@ data GameState = GS
   , isAlive :: Bool
   } deriving (Eq, Show)
 
+{-
+  TODO: I think the problem with current Board & Line is that
+  it is too fancy and in some sense restrictive
+  for the work it needs to do - all this transposing
+  and isomorphism stuff looks nice at first but using lens is really an overkill
+  and we don't really have many performance gain to begin with.
+  regarding the "restrictive" bit: Line is really just a list of four elements
+  and this makes it hard to extend to say 5x5 or non-square board.
+  What I want to try is to use a Map structure instead:
+  - when collapsing a line, the sequence of coordinates are computed to
+    extract the line from board, process as if it is a list of cells
+    and write it back afterwards.
+
+  Also I want to try out another idea:
+  define `newtype Cell = Cell Int`, where `merge :: Cell -> Cell -> Maybe Cell`
+  merges two cell only if two embedding numbers are same (say i)
+  and the result is `Just (Cell (i+1))` this saves a little bit space
+  and allows us to use stuff other than 1,2,4,8...
+ -}
 mkBoard :: [[Int]] -> Board
 mkBoard = Board . take 4 . (++ repeat defLine) . (mkLine <$>)
 
