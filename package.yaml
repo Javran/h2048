@@ -39,15 +39,15 @@ executables:
       - -main-is Simple
 
 tests:
-  test:
-    main: Test.hs
+  hspec:
+    main: Spec.hs
     source-dirs: test
     dependencies:
       - h2048
-      - HUnit
+      - hspec
     ghc-options:
       - -threaded
       - -O2
       - -rtsopts
       - -with-rtsopts=-N
-      - -main-is Test
+      - -main-is Spec
