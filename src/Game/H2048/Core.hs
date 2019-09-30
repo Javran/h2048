@@ -33,7 +33,7 @@ module Game.H2048.Core
 
   , gameState
   , GameState(..)
-  
+  , compactLine'
   , compactLine
   , initGameBoard
   , updateBoard
@@ -120,10 +120,8 @@ allDirs = [minBound .. maxBound]
 instance Default Board where
     def = mkBoard []
 
--- | move each non-zero element to their leftmost possible
---   position while preserving the order
-compactLine :: MonadWriter (Sum Int) m => Line -> m Line
-compactLine (Line l) = mkLine <$> merge (filter (/= 0) l)
+compactLine' :: Line -> (Sum Int, Line)
+compactLine' (Line l) = mkLine <$> merge (filter (/= 0) l)
     where
       merge r = case r of
         (x:y:xs) ->
@@ -139,6 +137,11 @@ compactLine (Line l) = mkLine <$> merge (filter (/= 0) l)
               -- and process rest of it.
               (x:) <$> merge (y:xs)
         _ -> pure r
+
+-- | move each non-zero element to their leftmost possible
+--   position while preserving the order
+compactLine :: MonadWriter (Sum Int) m => Line -> m Line
+compactLine l = let (v, l') = compactLine' l in writer (l', v)
 
 -- | update the board taking a direction,
 --   a 'BoardUpdated' is returned on success,

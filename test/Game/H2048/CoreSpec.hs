@@ -1,7 +1,5 @@
 module Game.H2048.CoreSpec where
 
-import Control.Arrow
-import Control.Monad.Writer
 import Test.Hspec
 
 import Game.H2048.Core
@@ -11,15 +9,17 @@ spec = do
   describe "compactLine" $
     specify "examples" $ do
       let clTest inp expected =
-            runWriter (compactLine (mkLine inp))
-              `shouldBe` first mkLine expected
-      clTest [0,0,0,0] ([0,0,0,0],0)
-      clTest [1,0,0,1] ([2,0,0,0],2)
-      clTest [2,2,2,2] ([4,4,0,0],8)
-      clTest [2,4,4,2] ([2,8,2,0],8)
-      clTest [2,4,8,2] ([2,4,8,2],0)
-      clTest [0,1,0,1] ([2,0,0,0],2)
-      clTest [1,0,2,0] ([1,2,0,0],0)
+              compactLine' (mkLine inp)
+                `shouldBe` (eScore, mkLine eLine)
+            where
+              (eScore, eLine) = expected
+      clTest [0,0,0,0] (0,[0,0,0,0])
+      clTest [1,0,0,1] (2,[2,0,0,0])
+      clTest [2,2,2,2] (8,[4,4,0,0])
+      clTest [2,4,4,2] (8,[2,8,2,0])
+      clTest [2,4,8,2] (0,[2,4,8,2])
+      clTest [0,1,0,1] (2,[2,0,0,0])
+      clTest [1,0,2,0] (0,[1,2,0,0])
 
   describe "gameState" $ do
     let gWonAlive = GS True True
