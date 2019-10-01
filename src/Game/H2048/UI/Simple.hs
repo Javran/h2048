@@ -13,7 +13,7 @@ A simple CLI implemention of Game 2048
 module Game.H2048.UI.Simple
   ( drawBoard
   , playGame
-  , mainSimple
+  , main
   , Board
   )
 where
@@ -133,8 +133,8 @@ playGame args@(b,score) |
                playGame (newB, score + scoreObtained)))
 
 -- | the entry of Simple UI
-mainSimple :: IO ()
-mainSimple = do
+main :: IO ()
+main = do
     bfMod <- hGetBuffering stdin
     -- no buffering - don't wait for the "enter"
     hSetBuffering stdin NoBuffering
