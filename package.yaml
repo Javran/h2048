@@ -39,7 +39,7 @@ executables:
       - -with-rtsopts=-N
       - -main-is Simple
   h2048-brick:
-    main: Brick.hs
+    main: BrickUi.hs
     source-dirs: exe
     dependencies:
       - h2048
@@ -48,7 +48,7 @@ executables:
       - -O2
       - -rtsopts
       - -with-rtsopts=-N
-      - -main-is Brick
+      - -main-is BrickUi
 
 tests:
   hspec:

@@ -21,12 +21,13 @@ boardWidget _ =
     row =
       vLimit 1 $
         hBox (intersperse vBorder (replicate 4 sampleCell))
-    hMax = length "2048"
+    contentSample = " 2048 "
+    hMax = length contentSample
     sampleCell =
       vLimit 1
       . hLimit hMax
       . center
-      $ str "2048"
+      $ str contentSample
 
 main :: IO ()
 main = do
