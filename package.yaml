@@ -16,10 +16,12 @@ extra-source-files:
 
 dependencies:
 - base
+- brick
 - lens
 - MonadRandom
 - mtl
 - text
+- vty
 
 library:
   source-dirs: src
@@ -36,6 +38,17 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Simple
+  h2048-brick:
+    main: Brick.hs
+    source-dirs: exe
+    dependencies:
+      - h2048
+    ghc-options:
+      - -threaded
+      - -O2
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -main-is Brick
 
 tests:
   hspec:
