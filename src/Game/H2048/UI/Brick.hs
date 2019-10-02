@@ -15,6 +15,8 @@ import Game.H2048.Core
 
 data RName = RBoard deriving (Eq, Ord)
 
+type AppState = (Board, Int {- for tracking total score -})
+
 valToTier :: Int -> Int
 valToTier = countTrailingZeros -- tier starting from 1
 
@@ -29,10 +31,9 @@ boardSample = mkBoard
   , [0,0,0,0]
   ]
 
-boardWidget :: Board -> Widget RName
-boardWidget bdOpaque =
-    center
-    . joinBorders
+boardWidget :: AppState -> Widget RName
+boardWidget (bdOpaque, _) =
+    joinBorders
     . border
     $ grid
   where
@@ -58,11 +59,17 @@ boardWidget bdOpaque =
               . padLeft Max
               $ str (show (bd !! r !! c) <> " ")
 
+ui :: AppState -> Widget RName
+ui s@(_,score) = center $
+  hCenter (boardWidget s)
+  <=> hCenter (str $ "Current Score: " <> show score)
+  <=> hCenter (str "i / k / j / l / arrow keys to move, q to quit.")
+
 main :: IO ()
 main = do
   let app =
         App
-        { appDraw = \s -> [boardWidget s]
+        { appDraw = \s -> [ui s]
         , appHandleEvent = resizeOrQuit
         , appStartEvent = pure
         , appAttrMap =
@@ -83,5 +90,5 @@ main = do
                     ]
         , appChooseCursor = neverShowCursor
         }
-      initState = boardSample
+      initState = (boardSample, 0)
   void $ defaultMain app initState
