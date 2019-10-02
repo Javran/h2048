@@ -8,8 +8,10 @@ import Data.Bits
 import Data.Functor
 import Data.List
 import Data.String
+import Data.Maybe
 import Graphics.Vty.Attributes
 import Graphics.Vty.Input.Events
+import Control.Monad.IO.Class
 
 import Game.H2048.Core
 
@@ -65,12 +67,35 @@ ui s@(_,score) = center $
   <=> hCenter (str $ "Current Score: " <> show score)
   <=> hCenter (str "i / k / j / l / arrow keys to move, q to quit.")
 
+handleEvent :: AppState -> BrickEvent RName e -> EventM RName (Next AppState)
+handleEvent s@(bd,score) e = case e of
+  VtyEvent (EvKey (KChar 'q') []) -> halt s
+  VtyEvent (EvKey k [])
+    | Just dir <- getMove k -> case updateBoard dir bd of
+        Nothing -> continue s
+        Just (bd', awarded) -> do
+          bd'' <- fromJust <$> liftIO (insertNewCell bd')
+          continue (bd'', score+awarded)
+  _ -> continue s
+
+getMove :: Key -> Maybe Dir
+getMove KUp = Just DUp
+getMove KDown = Just DDown
+getMove KLeft = Just DLeft
+getMove KRight = Just DRight
+getMove (KChar 'i') = Just DUp
+getMove (KChar 'k') = Just DDown
+getMove (KChar 'j') = Just DLeft
+getMove (KChar 'l') = Just DRight
+getMove _ = Nothing
+
 main :: IO ()
 main = do
+  initGb <- initGameBoard
   let app =
         App
         { appDraw = \s -> [ui s]
-        , appHandleEvent = resizeOrQuit
+        , appHandleEvent = handleEvent
         , appStartEvent = pure
         , appAttrMap =
             const $
@@ -90,5 +115,5 @@ main = do
                     ]
         , appChooseCursor = neverShowCursor
         }
-      initState = (boardSample, 0)
+      initState = initGb
   void $ defaultMain app initState
