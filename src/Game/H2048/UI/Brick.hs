@@ -70,12 +70,14 @@ ui s@(bd,score) =
   where
     nm = nextMoves bd
     ctrlHelpMsg = case nm of
-      [] -> "No more moves, game over. q to quit."
-      _ -> "i / k / j / l / arrow keys to move, q to quit."
+      [] -> "No more moves, game over. q to quit, r to restart."
+      _ -> "i / k / j / l / arrow keys to move, q to quit, r to restart."
 
 handleEvent :: AppState -> BrickEvent RName e -> EventM RName (Next AppState)
 handleEvent s@(bd,score) e = case e of
   VtyEvent (EvKey (KChar 'q') []) -> halt s
+  VtyEvent (EvKey (KChar 'r') []) ->
+    liftIO initGameBoard >>= continue
   VtyEvent (EvKey k [])
     | Just dir <- getMove k -> case updateBoard dir bd of
         Nothing -> continue s
