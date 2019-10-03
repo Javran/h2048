@@ -62,10 +62,16 @@ boardWidget (bdOpaque, _) =
               $ str (show (bd !! r !! c) <> " ")
 
 ui :: AppState -> Widget RName
-ui s@(_,score) = center $
-  hCenter (boardWidget s)
-  <=> hCenter (str $ "Current Score: " <> show score)
-  <=> hCenter (str "i / k / j / l / arrow keys to move, q to quit.")
+ui s@(bd,score) =
+    center $
+      hCenter (boardWidget s)
+      <=> hCenter (str $ "Current Score: " <> show score)
+      <=> hCenter (str ctrlHelpMsg)
+  where
+    nm = nextMoves bd
+    ctrlHelpMsg = case nm of
+      [] -> "No more moves, game over. q to quit."
+      _ -> "i / k / j / l / arrow keys to move, q to quit."
 
 handleEvent :: AppState -> BrickEvent RName e -> EventM RName (Next AppState)
 handleEvent s@(bd,score) e = case e of

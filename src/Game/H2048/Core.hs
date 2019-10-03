@@ -211,7 +211,7 @@ blankCells (Board b) = map (\(row, (col, _)) -> (row,col)) blankCells'
     linearBoard = concat $ zipWith tagRow [0..] colTagged
 
     -- tag cells with row num
-    tagRow row = map ((,) row)
+    tagRow row = map (row,)
     -- tag cells with column num
     colTagged = map (zip [0..] . (coerce :: Line -> [Int])) b
 
