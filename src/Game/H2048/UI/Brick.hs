@@ -71,9 +71,12 @@ ui s@(bd,score) =
     GS {hasWon, isAlive} = gameState bd
     moveHelp = "i / k / j / l / arrow keys to move, "
     commonHelp = "q to quit, r to restart."
+    {- TODO: this starts getting awkward, perhaps time to split the widget. -}
     ctrlHelpMsg =
       if not isAlive
-        then "No more moves, game over. " <> commonHelp
+        then
+          (if hasWon then "You won, but no more moves. " else "No more moves, game over. ")
+          <> commonHelp
         else
           (if hasWon then "You've won! " else "")
           <> moveHelp <> commonHelp
