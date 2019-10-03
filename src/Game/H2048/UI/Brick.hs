@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, NamedFieldPuns #-}
 module Game.H2048.UI.Brick where
 
 import Brick
@@ -68,10 +68,15 @@ ui s@(bd,score) =
       <=> hCenter (str $ "Current Score: " <> show score)
       <=> hCenter (str ctrlHelpMsg)
   where
-    nm = nextMoves bd
-    ctrlHelpMsg = case nm of
-      [] -> "No more moves, game over. q to quit, r to restart."
-      _ -> "i / k / j / l / arrow keys to move, q to quit, r to restart."
+    GS {hasWon, isAlive} = gameState bd
+    moveHelp = "i / k / j / l / arrow keys to move, "
+    commonHelp = "q to quit, r to restart."
+    ctrlHelpMsg =
+      if not isAlive
+        then "No more moves, game over. " <> commonHelp
+        else
+          (if hasWon then "You've won! " else "")
+          <> moveHelp <> commonHelp
 
 handleEvent :: AppState -> BrickEvent RName e -> EventM RName (Next AppState)
 handleEvent s@(bd,score) e = case e of
