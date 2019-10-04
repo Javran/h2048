@@ -6,7 +6,7 @@ A haskell implementation of Game 2048. Including:
 
 * a library for experimenting game strategies for Game 2048
 * a simple CLI that merely pretty-prints the game board
-* a better CLI implemented using [vty-ui](http://hackage.haskell.org/package/vty-ui)
+* a better CLI implemented using [brick](http://hackage.haskell.org/package/brick)
 
 Based on [2048](https://github.com/gabrielecirulli/2048)
 
@@ -32,28 +32,13 @@ you can use the following command to install this project:
     cabal update
     cabal install h2048
 
-The binaries are `h2048-simple` for simple CLI version, `h2048-vty` for CLI version
-implemented using `vty-ui`.
-
-### Flags
-
-If you just want the functionality of this library, you can turn off flag `exe`.
-If you have trouble building the `vty` CLI version, you can try to turn off flag `vty`.
-
-An example for turning off flag `vty`:
-
-    # if you are installing package from hackage:
-    cabal install --flag="-vty"
-
-    # or if you are building from the github repo
-    cabal configure --flag="-vty"
-    cabal build
+The binaries are `h2048-simple` for simple CLI version, `h2048-brick` for CLI version
+implemented using `brick`.
 
 ### Without cabal
 
 First make sure the following dependencies are installed:
 
-* [transformers](http://hackage.haskell.org/package/transformers)
 * [mtl](http://hackage.haskell.org/package/mtl)
 * [MonadRandom](http://hackage.haskell.org/package/MonadRandom)
 
@@ -62,15 +47,7 @@ are also required:
 
 * [text](http://hackage.haskell.org/package/text)
 * [vty](http://hackage.haskell.org/package/vty)
-* [vty-ui](http://hackage.haskell.org/package/vty-ui)
-
-You can use following commands to run the program without cabal:
-
-    cd src # assume your working directory is the project home.
-    # to play the simple CLI version
-    runhaskell MainSimple.hs
-    # to play the vty CLI version
-    runhaskell MainVty.hs
+* [brick](http://hackage.haskell.org/package/brick)
 
 ## How to play
 
@@ -82,4 +59,4 @@ keys:
 * `j`: left
 * `l`: right
 
-If you are using `h2048-vty`, you can also use arrow keys.
+If you are using `h2048-brick`, you can also use arrow keys.
