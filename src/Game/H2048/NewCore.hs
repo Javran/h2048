@@ -2,6 +2,7 @@
 module Game.H2048.NewCore where
 
 import qualified Data.Map.Strict as M
+import qualified Data.IntMap.Strict as IM
 
 {-
   TODO: this is an overhaul of Game.H2048.Core .. hmm just for fun.
@@ -17,23 +18,37 @@ import qualified Data.Map.Strict as M
     For example, rules like the following is kind of arbitrary and one should
     be able to change them without having to modify core:
 
-    - size of the board is 4x4.
-    - 90% time we get a 2, otherwise 4.
-    - get a 2048 to be considered having won.
-    - how many score you get by merging.
+    - size of the board is 4x4. (_grDim)
+    - 90% time we get a 2, otherwise 4. (_grNewCellDistrib)
+    - get a 2048 to be considered having won. (_grHasWon)
+    - how many score you get by merging. (_grMergeAward)
 
  -}
 
-newtype Cell = Cell { _cTier :: Int }
+type CellTier = Int
+
+newtype Cell = Cell { _cTier :: CellTier }
 
 merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 
 type Coord = (Int, Int) -- (<row>, <col>) 0-based.
 
-data Board
-  = Board
-    { _bdRows :: Int
-    , _bdCols :: Int
-    , _bdCells :: M.Map Coord Cell
+data GameState
+  = GameState
+    { _gsScore :: Int
+    , _gsBoard :: M.Map Coord Cell
     }
+
+data GameRule
+  = GameRule
+  { -- dimension of the board. (<# of rows>, <# of cols>)
+    _grDim :: (Int, Int)
+    -- whether the play has won given the current game state.
+  , _grHasWon :: GameState -> Bool
+    -- score awarded given GameState and Cell **before** the merge has happened.
+  , _grMergeAward :: GameState -> CellTier -> Int
+    -- newly generated cell should follow this distribution from cell tier to a weight.
+    -- note that values in this IntMap must be non-empty.
+  , _grNewCellDistrib :: GameState -> IM.IntMap Int
+  }
