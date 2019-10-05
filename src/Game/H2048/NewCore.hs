@@ -1,6 +1,12 @@
 {-# LANGUAGE MonadComprehensions #-}
 module Game.H2048.NewCore where
 
+import Control.Monad.ST
+import System.Random.TF
+import System.Random.TF.Instances
+import Data.Ord
+
+import qualified Data.Vector.Algorithms.Search as VA
 import qualified Data.Vector as V
 import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
@@ -69,3 +75,15 @@ computeDistrib m =
   where
     pairs = IM.toList m
     weights = scanl1 (+) . fmap snd $ pairs
+
+randomPick :: V.Vector (a, Int) -> TFGen -> (a, TFGen)
+randomPick vec g = runST $ do
+    let upper = snd (V.last vec)
+        (val, g') = randomR (1, upper) g
+    -- safe because binary search is read-only.
+    mv <- V.unsafeThaw vec
+    -- there should never be two same element in the processed list,
+    -- so a basic binary search will do.
+    ind <- VA.binarySearchBy (comparing snd) mv (error "unused", val)
+    pure (fst (vec V.! ind), g')
+
