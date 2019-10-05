@@ -1,9 +1,10 @@
-{-# LANGUAGE MonadComprehensions #-}
+{-# LANGUAGE MonadComprehensions, TupleSections #-}
 module Game.H2048.NewCore where
 
 import Control.Monad.ST
 import System.Random.TF
 import System.Random.TF.Instances
+import Control.Monad.State
 import Data.Ord
 
 import qualified Data.Vector.Algorithms.Search as VA
@@ -87,3 +88,13 @@ randomPick vec g = runST $ do
     ind <- VA.binarySearchBy (comparing snd) mv (error "unused", val)
     pure (fst (vec V.! ind), g')
 
+experiment :: [(Int, Int)] -> IO ()
+experiment xs = do
+  let d = computeDistrib (IM.fromList xs)
+  g <- newTFGen
+  let picks =
+        IM.fromListWith (+)
+        . fmap (,1 :: Int)
+        . evalState (replicateM 10000 (state (randomPick d)))
+        $ g
+  mapM_ print (IM.toAscList picks)
