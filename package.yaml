@@ -23,6 +23,9 @@ dependencies:
 - MonadRandom
 - mtl
 - text
+- tf-random
+- vector
+- vector-algorithms
 - vty
 
 library:

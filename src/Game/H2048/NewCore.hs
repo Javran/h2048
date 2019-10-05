@@ -1,6 +1,7 @@
 {-# LANGUAGE MonadComprehensions #-}
 module Game.H2048.NewCore where
 
+import qualified Data.Vector as V
 import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
 
@@ -52,3 +53,19 @@ data GameRule
     -- note that values in this IntMap must be non-empty.
   , _grNewCellDistrib :: GameState -> IM.IntMap Int
   }
+
+{-
+  Pre-processing the distribution:
+
+  e.g. {a: 3, b: 4, c: 2} => [(a, 3), (b, 3+4), (c, 3+4+2)] = [(a, 3), (b, 7), (c, 9)]
+
+  after this is done, we can pick a value from 1 to the last element of this vector (in this case, 9.),
+  and lookup the corresponding element.
+
+ -}
+computeDistrib :: IM.IntMap Int -> V.Vector (Int, Int)
+computeDistrib m =
+    V.fromListN (IM.size m) $ zip (fmap fst pairs) weights
+  where
+    pairs = IM.toList m
+    weights = scanl1 (+) . fmap snd $ pairs
