@@ -2,15 +2,15 @@
 module Game.H2048.NewCore where
 
 import Control.Monad.ST
-import System.Random.TF
-import System.Random.TF.Instances
 import Control.Monad.State
 import Data.Ord
+import System.Random.TF
+import System.Random.TF.Instances
 
-import qualified Data.Vector.Algorithms.Search as VA
-import qualified Data.Vector as V
-import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
+import qualified Data.Map.Strict as M
+import qualified Data.Vector as V
+import qualified Data.Vector.Algorithms.Search as VA
 
 {-
   TODO: this is an overhaul of Game.H2048.Core .. hmm just for fun.
@@ -83,18 +83,27 @@ randomPick vec g = runST $ do
         (val, g') = randomR (1, upper) g
     -- safe because binary search is read-only.
     mv <- V.unsafeThaw vec
-    -- there should never be two same element in the processed list,
-    -- so a basic binary search will do.
-    ind <- VA.binarySearchBy (comparing snd) mv (error "unused", val)
+    {-
+      Say if the accumulated distribution is like:
+
+      > [1,3,5]
+
+      Given 3, valid insertion points are:
+
+      > [1,3,5]
+           ^ ^
+      But in our case we really want the lowest one, therefore using binarySearchLBy.
+     -}
+    ind <- VA.binarySearchLBy (comparing snd) mv (error "unused", val)
     pure (fst (vec V.! ind), g')
 
-experiment :: [(Int, Int)] -> IO ()
-experiment xs = do
+experiment :: Int -> [(Int, Int)] -> IO ()
+experiment count xs = do
   let d = computeDistrib (IM.fromList xs)
   g <- newTFGen
   let picks =
         IM.fromListWith (+)
         . fmap (,1 :: Int)
-        . evalState (replicateM 10000 (state (randomPick d)))
+        . evalState (replicateM count (state (randomPick d)))
         $ g
   mapM_ print (IM.toAscList picks)
