@@ -3,6 +3,7 @@ module Game.H2048.NewCore where
 
 import Control.Monad.ST
 import Control.Monad.State
+import Data.Bifunctor
 import Data.Ord
 import System.Random.TF
 import System.Random.TF.Instances
@@ -59,11 +60,27 @@ data GameRule
     -- whether the play has won given the current game state.
   , _grHasWon :: GameState -> Bool
     -- score awarded given GameState and Cell **before** the merge has happened.
-  , _grMergeAward :: GameState -> CellTier -> Int
+  , _grMergeAward :: CellTier -> Int
     -- newly generated cell should follow this distribution from cell tier to a weight.
     -- note that values in this IntMap must be non-empty.
-  , _grNewCellDistrib :: GameState -> IM.IntMap Int
+  , _grNewCellDistrib :: IM.IntMap Int
   }
+
+mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
+mergeWithScore gr a b = do
+  let Cell ctPrev = a
+  c <- merge a b
+  pure (c, _grMergeAward gr ctPrev)
+
+mergeLine :: GameRule -> [Cell] -> ([Cell], Int)
+mergeLine gr = mergeLine' 0
+  where
+    mergeLine' acc xs = case xs of
+      a:b:ys
+        | Just (c, award) <- mergeWithScore gr a b ->
+            first  (c:) $ mergeLine' (acc+award) ys
+      a:ys -> first (a:) (mergeLine' acc ys)
+      [] -> ([], acc)
 
 {-
   Pre-processing the distribution:
