@@ -48,6 +48,10 @@ data GameState
     , _gsBoard :: M.Map Coord Cell
     }
 
+{-
+  TODO: parametrize mergeAward and newCellDistrib on GameState.
+  For now this is complicated and unnecessary.
+ -}
 data GameRule
   = GameRule
   { -- dimension of the board. (<# of rows>, <# of cols>)
