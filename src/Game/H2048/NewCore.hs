@@ -1,6 +1,7 @@
 {-# LANGUAGE MonadComprehensions, TupleSections, LambdaCase #-}
 module Game.H2048.NewCore where
 
+import Data.Monoid
 import Data.Maybe
 import Control.Monad.ST
 import Control.Monad.State
@@ -8,6 +9,7 @@ import Data.Bifunctor
 import Data.Ord
 import System.Random.TF
 import System.Random.TF.Instances
+import Control.Applicative
 
 import qualified Data.IntMap.Strict as IM
 import qualified Data.Map.Strict as M
@@ -108,12 +110,24 @@ dirToCoords gr rowOrCol = \case
   where
     (rows, cols) = _grDim gr
 
--- extract a row from game board.
-extractByMove :: GameRule -> Int -> Dir -> GameState -> [Cell]
-extractByMove gr rowOrCol dir gs =
-    mapMaybe (_gsBoard gs M.!?) coords
+-- extract a line (row or col) of cells from board
+-- using the game move specified.
+extractByCoords :: GameState -> [Coord] -> [Cell]
+extractByCoords gs = mapMaybe (_gsBoard gs M.!?)
+
+updateCoordsOnBoard :: M.Map Coord Cell -> [Coord] -> [Cell] -> M.Map Coord Cell
+updateCoordsOnBoard bd coords vals =
+    appEndo (foldMap (Endo . updateBoard) (zip coords mVals)) bd
   where
-    coords = dirToCoords gr rowOrCol dir
+    {-
+      Note the use of "M.update" here - we need to do insertion and deletion
+      at the same time and M.update does just that.
+
+      Also coords should all be distinct, so it does not matter
+      the order that this sequence of updates are performed.
+     -}
+    updateBoard (coord, mVal) = M.update (const mVal) coord
+    mVals = (Just <$> vals) <> repeat Nothing
 
 {-
   Pre-processing the distribution:
