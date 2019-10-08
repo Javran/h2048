@@ -1,4 +1,4 @@
-{-# LANGUAGE MonadComprehensions, TupleSections #-}
+{-# LANGUAGE MonadComprehensions, TupleSections, LambdaCase #-}
 module Game.H2048.NewCore where
 
 import Data.Maybe
@@ -83,28 +83,37 @@ mergeLine gr = mergeLine' 0
       a:ys -> first (a:) (mergeLine' acc ys)
       [] -> ([], acc)
 
--- extract a row from game board.
-extractRow :: GameRule -> GameState -> Bool -> Int -> [Cell]
-extractRow gr gs revFlag row =
-    mapMaybe ((_gsBoard gs) M.!?) coords
-  where
-    (_, cols) = _grDim gr
-    coords =
-      (row,) <$>
-        if revFlag
-          then [cols-1,cols-2..0]
-          else [0..cols-1]
+-- | move direction
+data Dir
+  = DUp
+  | DDown
+  | DLeft
+  | DRight
+  deriving (Enum, Bounded, Eq, Ord, Show)
 
-extractCol :: GameRule -> GameState -> Bool -> Int -> [Cell]
-extractCol gr gs revFlag col =
-    mapMaybe ((_gsBoard gs) M.!?) coords
+dirToCoords :: GameRule -> Int -> Dir -> [Coord]
+dirToCoords gr rowOrCol = \case
+    DUp ->
+      let col = rowOrCol
+      in (,col) <$> [0..rows-1]
+    DDown ->
+      let col = rowOrCol
+      in (,col) <$> [rows-1,rows-2..0]
+    DLeft ->
+      let row = rowOrCol
+      in (row,) <$> [0..cols-1]
+    DRight ->
+      let row = rowOrCol
+      in (row,) <$> [cols-1,cols-2..0]
   where
-    (rows, _) = _grDim gr
-    coords =
-      (col,) <$>
-        if revFlag
-          then [rows-1,rows-2..0]
-          else [0..rows-1]
+    (rows, cols) = _grDim gr
+
+-- extract a row from game board.
+extractByMove :: GameRule -> Int -> Dir -> GameState -> [Cell]
+extractByMove gr rowOrCol dir gs =
+    mapMaybe (_gsBoard gs M.!?) coords
+  where
+    coords = dirToCoords gr rowOrCol dir
 
 {-
   Pre-processing the distribution:
