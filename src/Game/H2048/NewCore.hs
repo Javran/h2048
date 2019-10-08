@@ -1,6 +1,7 @@
 {-# LANGUAGE MonadComprehensions, TupleSections #-}
 module Game.H2048.NewCore where
 
+import Data.Maybe
 import Control.Monad.ST
 import Control.Monad.State
 import Data.Bifunctor
@@ -81,6 +82,29 @@ mergeLine gr = mergeLine' 0
             first  (c:) $ mergeLine' (acc+award) ys
       a:ys -> first (a:) (mergeLine' acc ys)
       [] -> ([], acc)
+
+-- extract a row from game board.
+extractRow :: GameRule -> GameState -> Bool -> Int -> [Cell]
+extractRow gr gs revFlag row =
+    mapMaybe ((_gsBoard gs) M.!?) coords
+  where
+    (_, cols) = _grDim gr
+    coords =
+      (row,) <$>
+        if revFlag
+          then [cols-1,cols-2..0]
+          else [0..cols-1]
+
+extractCol :: GameRule -> GameState -> Bool -> Int -> [Cell]
+extractCol gr gs revFlag col =
+    mapMaybe ((_gsBoard gs) M.!?) coords
+  where
+    (rows, _) = _grDim gr
+    coords =
+      (col,) <$>
+        if revFlag
+          then [rows-1,rows-2..0]
+          else [0..rows-1]
 
 {-
   Pre-processing the distribution:
