@@ -1,15 +1,15 @@
 {-# LANGUAGE MonadComprehensions, TupleSections, LambdaCase #-}
 module Game.H2048.NewCore where
 
-import Data.Monoid
-import Data.Maybe
+import Control.Applicative
 import Control.Monad.ST
 import Control.Monad.State
 import Data.Bifunctor
+import Data.Maybe
+import Data.Monoid
 import Data.Ord
 import System.Random.TF
 import System.Random.TF.Instances
-import Control.Applicative
 
 import qualified Data.IntMap.Strict as IM
 import qualified Data.Map.Strict as M
@@ -45,11 +45,12 @@ merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 
 type Coord = (Int, Int) -- (<row>, <col>) 0-based.
+type GameBoard = M.Map Coord Cell
 
 data GameState
   = GameState
     { _gsScore :: Int
-    , _gsBoard :: M.Map Coord Cell
+    , _gsBoard :: GameBoard
     }
 
 {-
@@ -112,12 +113,12 @@ dirToCoords gr rowOrCol = \case
 
 -- extract a line (row or col) of cells from board
 -- using the game move specified.
-extractByCoords :: GameState -> [Coord] -> [Cell]
-extractByCoords gs = mapMaybe (_gsBoard gs M.!?)
+extractByCoords :: GameBoard -> [Coord] -> [Cell]
+extractByCoords bd = mapMaybe (bd M.!?)
 
-updateCoordsOnBoard :: M.Map Coord Cell -> [Coord] -> [Cell] -> M.Map Coord Cell
-updateCoordsOnBoard bd coords vals =
-    appEndo (foldMap (Endo . updateBoard) (zip coords mVals)) bd
+updateCoordsOnBoard :: [Coord] -> [Cell] -> GameBoard -> GameBoard
+updateCoordsOnBoard coords vals =
+    appEndo (foldMap (Endo . updateBoard) (zip coords mVals))
   where
     {-
       Note the use of "M.update" here - we need to do insertion and deletion
