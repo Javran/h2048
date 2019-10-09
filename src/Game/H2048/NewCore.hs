@@ -93,7 +93,10 @@ data Dir
   | DRight
   deriving (Enum, Bounded, Eq, Ord, Show)
 
-dirToCoordsGroups :: GameRule -> Dir -> [] [Coord]
+type Coords = [Coord]
+type CoordsGroup = [Coords]
+
+dirToCoordsGroups :: GameRule -> Dir -> CoordsGroup
 dirToCoordsGroups gr = \case
     DUp -> do
       c <- [0..cols-1]
@@ -131,6 +134,13 @@ updateCoordsOnBoard coords vals =
      -}
     updateBoard (coord, mVal) = M.update (const mVal) coord
     mVals = (Just <$> vals) <> repeat Nothing
+
+applyMoveOnCoords :: GameRule -> Coords -> GameBoard -> (GameBoard, Int)
+applyMoveOnCoords gr coords bd =
+    (updateCoordsOnBoard coords cells' bd, score)
+  where
+    cells = extractByCoords bd coords
+    (cells', score) = mergeLine gr cells
 
 {-
   Pre-processing the distribution:
