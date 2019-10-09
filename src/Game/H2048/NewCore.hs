@@ -1,7 +1,6 @@
 {-# LANGUAGE MonadComprehensions, TupleSections, LambdaCase #-}
 module Game.H2048.NewCore where
 
-import Control.Applicative
 import Control.Monad.ST
 import Control.Monad.State
 import Data.Bifunctor
@@ -94,22 +93,25 @@ data Dir
   | DRight
   deriving (Enum, Bounded, Eq, Ord, Show)
 
-dirToCoords :: GameRule -> Int -> Dir -> [Coord]
-dirToCoords gr rowOrCol = \case
-    DUp ->
-      let col = rowOrCol
-      in (,col) <$> [0..rows-1]
-    DDown ->
-      let col = rowOrCol
-      in (,col) <$> [rows-1,rows-2..0]
-    DLeft ->
-      let row = rowOrCol
-      in (row,) <$> [0..cols-1]
-    DRight ->
-      let row = rowOrCol
-      in (row,) <$> [cols-1,cols-2..0]
+dirToCoordsGroups :: GameRule -> Dir -> [] [Coord]
+dirToCoordsGroups gr = \case
+    DUp -> do
+      c <- [0..cols-1]
+      pure $ (,c) <$> [0..rows-1]
+    DDown -> do
+      c <- [0..cols-1]
+      pure $ (,c) <$> [rows-1,rows-2..0]
+    DLeft -> do
+      r <- [0..rows-1]
+      pure $ (r,) <$> [0..cols-1]
+    DRight -> do
+      r <- [0..rows-1]
+      pure $ (r,) <$> [cols-1,cols-2..0]
   where
     (rows, cols) = _grDim gr
+
+dirToCoords :: GameRule -> Int -> Dir -> [Coord]
+dirToCoords gr rowOrCol dir = dirToCoordsGroups gr dir !! rowOrCol
 
 -- extract a line (row or col) of cells from board
 -- using the game move specified.
