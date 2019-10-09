@@ -7,6 +7,7 @@ import Data.Bifunctor
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
+import Data.Tuple
 import System.Random.TF
 import System.Random.TF.Instances
 
@@ -38,7 +39,7 @@ import qualified Data.Vector.Algorithms.Search as VA
 
 type CellTier = Int
 
-newtype Cell = Cell { _cTier :: CellTier }
+newtype Cell = Cell { _cTier :: CellTier } deriving Eq
 
 merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
@@ -141,6 +142,17 @@ applyMoveOnCoords gr coords bd =
   where
     cells = extractByCoords bd coords
     (cells', score) = mergeLine gr cells
+
+-- apply a game move on a board.
+applyMove :: GameRule -> Dir -> GameBoard -> Maybe (GameBoard, Int)
+applyMove gr dir bd = [ (bd', score) | bd /= bd' ]
+  where
+    csGroups = dirToCoordsGroups gr dir
+    (scores, bd') =
+      runState
+        (mapM (\coords -> state (swap . applyMoveOnCoords gr coords)) csGroups)
+        bd
+    score = sum (scores :: [Int])
 
 {-
   Pre-processing the distribution:
