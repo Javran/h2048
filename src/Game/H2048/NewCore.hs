@@ -1,9 +1,15 @@
-{-# LANGUAGE MonadComprehensions, TupleSections, LambdaCase #-}
+{-# LANGUAGE
+    MonadComprehensions
+  , TupleSections
+  , LambdaCase
+  , RecordWildCards
+  #-}
 module Game.H2048.NewCore where
 
 import Control.Monad.ST
 import Control.Monad.State
 import Data.Bifunctor
+import Data.Bits
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
@@ -41,6 +47,13 @@ type CellTier = Int
 
 newtype Cell = Cell { _cTier :: CellTier } deriving Eq
 
+-- note that the input must be powers of 2.
+intToCell :: Int -> Cell
+intToCell = Cell . countTrailingZeros
+
+cellToInt :: Cell -> Int
+cellToInt (Cell t) = shiftL 1 t
+
 merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 
@@ -69,6 +82,7 @@ data GameRule
     -- note that values in this IntMap must be non-empty.
   , _grNewCellDistrib :: IM.IntMap Int
   }
+
 
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
 mergeWithScore gr a b = do
