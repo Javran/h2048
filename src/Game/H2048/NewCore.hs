@@ -45,7 +45,7 @@ import qualified Data.Vector.Algorithms.Search as VA
 
 type CellTier = Int
 
-newtype Cell = Cell { _cTier :: CellTier } deriving (Eq, Ord)
+newtype Cell = Cell { _cTier :: CellTier } deriving (Eq, Ord, Show)
 
 -- note that the input must be powers of 2.
 intToCell :: Int -> Cell
