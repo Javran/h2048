@@ -114,9 +114,6 @@ dirToCoordsGroups gr = \case
   where
     (rows, cols) = _grDim gr
 
-dirToCoords :: GameRule -> Int -> Dir -> [Coord]
-dirToCoords gr rowOrCol dir = dirToCoordsGroups gr dir !! rowOrCol
-
 -- extract a line (row or col) of cells from board
 -- using the game move specified.
 extractByCoords :: GameBoard -> [Coord] -> [Cell]
