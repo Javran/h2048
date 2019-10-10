@@ -45,7 +45,7 @@ import qualified Data.Vector.Algorithms.Search as VA
 
 type CellTier = Int
 
-newtype Cell = Cell { _cTier :: CellTier } deriving Eq
+newtype Cell = Cell { _cTier :: CellTier } deriving (Eq, Ord)
 
 -- note that the input must be powers of 2.
 intToCell :: Int -> Cell
@@ -83,6 +83,16 @@ data GameRule
   , _grNewCellDistrib :: IM.IntMap Int
   }
 
+standardGameRule :: GameRule
+standardGameRule = GameRule
+    { _grDim = (4,4)
+    , _grNewCellDistrib = IM.fromList [(1, 9), (2,1)]
+    , _grHasWon = any (>= goalCell) . _gsBoard
+    , ..
+    }
+  where
+    goalCell = intToCell 2048
+    _grMergeAward ct = shiftL 1 (ct+1)
 
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
 mergeWithScore gr a b = do
