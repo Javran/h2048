@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Game.H2048.NewCoreSpec where
 
 import Data.Bifunctor
@@ -40,3 +41,24 @@ spec = do
     specify "examples" $
       computeDistrib (IM.fromList [(1,2),(2,5),(3,7),(4,6)])
         `shouldBe` V.fromList [(1,2),(2,7),(3,14),(4,20)]
+  describe "dirToCoordsGroups" $ do
+    specify "standard game examples" $ do
+      let testCase dir expected =
+            dirToCoordsGroups gr dir
+              `shouldBe` expected
+      testCase DUp $
+        fmap (\c -> fmap (,c) [0..3]) [0..3]
+      testCase DDown $
+        fmap (\c -> fmap (,c) [3,2..0]) [0..3]
+      testCase DLeft $
+        fmap (\r -> fmap (r,) [0..3]) [0..3]
+      testCase DRight $
+        fmap (\r -> fmap (r,) [3,2..0]) [0..3]
+    specify "non-square examples" $ do
+      let testCase dir expected =
+            dirToCoordsGroups (gr {_grDim = (3,5)}) dir
+              `shouldBe` expected
+      testCase DUp $
+        fmap (\c -> fmap (,c) [0..2]) [0..4]
+      testCase DRight $
+        fmap (\r -> fmap (r,) [4,3..0]) [0..2]
