@@ -3,6 +3,9 @@ module Game.H2048.NewCoreSpec where
 import Data.Bifunctor
 import Test.Hspec
 
+import qualified Data.IntMap as IM
+import qualified Data.Vector as V
+
 import Game.H2048.NewCore
 
 spec :: Spec
@@ -33,3 +36,7 @@ spec = do
       mergeLine' [4,8,8] `shouldBe` ([4,16], 16)
       mergeLine' [4,2,2,8] `shouldBe` ([4,4,8], 4)
       mergeLine' [2,2,2,2] `shouldBe` ([4,4], 8)
+  describe "computeDistrib" $
+    specify "examples" $
+      computeDistrib (IM.fromList [(1,2),(2,5),(3,7),(4,6)])
+        `shouldBe` V.fromList [(1,2),(2,7),(3,14),(4,20)]
