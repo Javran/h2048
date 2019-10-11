@@ -1,5 +1,6 @@
 module Game.H2048.NewCoreSpec where
 
+import Data.Bifunctor
 import Test.Hspec
 
 import Game.H2048.NewCore
@@ -20,3 +21,15 @@ spec = do
         `shouldBe` Just (Cell 2, 4)
       mergeWithScore gr (Cell 4) (Cell 4)
         `shouldBe` Just (Cell 5, 32)
+  describe "mergeLines" $
+    specify "examples" $ do
+      let mergeLine' =
+            first (fmap cellToInt)
+            . mergeLine gr
+            . fmap intToCell
+      mergeLine' [] `shouldBe` ([], 0)
+      mergeLine' [2,2,4] `shouldBe` ([4,4], 4)
+      mergeLine' [4,4,4] `shouldBe` ([8,4], 8)
+      mergeLine' [4,8,8] `shouldBe` ([4,16], 16)
+      mergeLine' [4,2,2,8] `shouldBe` ([4,4,8], 4)
+      mergeLine' [2,2,2,2] `shouldBe` ([4,4], 8)
