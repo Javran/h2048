@@ -5,9 +5,31 @@ import Data.Bifunctor
 import Test.Hspec
 
 import qualified Data.IntMap as IM
+import qualified Data.Map as M
 import qualified Data.Vector as V
 
 import Game.H2048.NewCore
+
+gameBoardToList :: (Int, Int) -> GameBoard -> [[Int]]
+gameBoardToList (rows,cols) gb =
+    (\r -> convert r <$> [0..cols-1]) <$> [0..rows-1]
+  where
+    convert rInd cInd = case M.lookup (rInd,cInd) gb of
+      Nothing -> 0
+      Just c -> cellToInt c
+
+listToGameBoard :: (Int, Int) -> [[Int]] -> GameBoard
+listToGameBoard (rows,cols) grid =
+    M.fromList $ zip coords (convert <$> concat grid) >>= unwrap
+  where
+    coords = (,) <$> [0..rows-1] <*> [0..cols-1]
+    convert v =
+      if v == 0
+        then Nothing
+        else Just (intToCell v)
+    unwrap (coord, m) = case m of
+      Nothing -> []
+      Just m' -> [(coord, m')]
 
 spec :: Spec
 spec = do
