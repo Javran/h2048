@@ -10,14 +10,6 @@ import qualified Data.Vector as V
 
 import Game.H2048.NewCore
 
-gameBoardToList :: (Int, Int) -> GameBoard -> [[Int]]
-gameBoardToList (rows,cols) gb =
-    (\r -> convert r <$> [0..cols-1]) <$> [0..rows-1]
-  where
-    convert rInd cInd = case M.lookup (rInd,cInd) gb of
-      Nothing -> 0
-      Just c -> cellToInt c
-
 listToGameBoard :: (Int, Int) -> [[Int]] -> GameBoard
 listToGameBoard (rows,cols) grid =
     M.fromList $ zip coords (convert <$> concat grid) >>= unwrap
@@ -85,16 +77,19 @@ spec = do
       testCase DRight $
         fmap (\r -> fmap (r,) [4,3..0]) [0..2]
   describe "applyMove" $
-    specify "examples" $
-      (fmap . first) (gameBoardToList (4,4))
-        (applyMove gr DUp (listToGameBoard (4,4)
-                         [ [2,2,2,2]
-                         , [2,4,4,2]
-                         , [2,4,4,2]
-                         , [2,2,2,2]
-                         ]))
-        `shouldBe` Just ([ [4,2,2,4]
-                         , [4,8,8,4]
-                         , [0,2,2,0]
-                         , [0,0,0,0]
-                         ], 32)
+    specify "examples" $ do
+      let toGB = listToGameBoard (_grDim gr)
+          testCase listBd dir expected =
+            applyMove gr dir (toGB listBd)
+              `shouldBe` (fmap . first) toGB expected
+      testCase
+        [ [2,2,2,2]
+        , [2,4,4,2]
+        , [2,4,4,2]
+        , [2,2,2,2]
+        ] DUp $
+        Just ([ [4,2,2,4]
+              , [4,8,8,4]
+              , [0,2,2,0]
+              , [0,0,0,0]
+              ], 32)
