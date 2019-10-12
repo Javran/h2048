@@ -84,3 +84,17 @@ spec = do
         fmap (\c -> fmap (,c) [0..2]) [0..4]
       testCase DRight $
         fmap (\r -> fmap (r,) [4,3..0]) [0..2]
+  describe "applyMove" $
+    specify "examples" $
+      (fmap . first) (gameBoardToList (4,4))
+        (applyMove gr DUp (listToGameBoard (4,4)
+                         [ [2,2,2,2]
+                         , [2,4,4,2]
+                         , [2,4,4,2]
+                         , [2,2,2,2]
+                         ]))
+        `shouldBe` Just ([ [4,2,2,4]
+                         , [4,8,8,4]
+                         , [0,2,2,0]
+                         , [0,0,0,0]
+                         ], 32)
