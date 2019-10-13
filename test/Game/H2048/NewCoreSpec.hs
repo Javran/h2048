@@ -79,17 +79,42 @@ spec = do
   describe "applyMove" $
     specify "examples" $ do
       let toGB = listToGameBoard (_grDim gr)
+          -- used for testing while describing board as a list
           testCase listBd dir expected =
             applyMove gr dir (toGB listBd)
               `shouldBe` (fmap . first) toGB expected
-      testCase
+          -- for making it convenient to test for multiple
+          -- directions on the same board configuration.
+          testCases listBd =
+            mapM_ (uncurry (testCase listBd))
+      testCases
         [ [2,2,2,2]
         , [2,4,4,2]
         , [2,4,4,2]
         , [2,2,2,2]
-        ] DUp $
-        Just ([ [4,2,2,4]
-              , [4,8,8,4]
-              , [0,2,2,0]
-              , [0,0,0,0]
-              ], 32)
+        ]
+        [ ( DUp
+          , Just ([ [4,2,2,4]
+                  , [4,8,8,4]
+                  , [0,2,2,0]
+                  , [0,0,0,0]
+                  ], 32))
+        , ( DDown
+          , Just ([ [0,0,0,0]
+                  , [0,2,2,0]
+                  , [4,8,8,4]
+                  , [4,2,2,4]
+                  ], 32))
+        , ( DUp
+          , Just ([ [4,4,0,0]
+                  , [2,8,2,0]
+                  , [2,8,2,0]
+                  , [4,4,0,0]
+                  ], 32))
+        , ( DUp
+          , Just ([ [0,0,4,4]
+                  , [0,2,8,2]
+                  , [0,2,8,2]
+                  , [0,0,4,4]
+                  ], 32))
+        ]
