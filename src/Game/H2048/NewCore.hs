@@ -147,23 +147,25 @@ dirToCoordsGroups gr = \case
 extractByCoords :: GameBoard -> [Coord] -> [Cell]
 extractByCoords bd = mapMaybe (bd M.!?)
 
-updateCoordsOnBoard :: [Coord] -> [Cell] -> GameBoard -> GameBoard
-updateCoordsOnBoard coords vals =
-    appEndo (foldMap (Endo . updateBoard) (zip coords mVals))
+alterCoordsOnBoard :: [Coord] -> [Cell] -> GameBoard -> GameBoard
+alterCoordsOnBoard coords vals =
+    appEndo (foldMap (Endo . alterBoard) (zip coords mVals))
   where
     {-
-      Note the use of "M.update" here - we need to do insertion and deletion
-      at the same time and M.update does just that.
+      Note the use of "M.alter" here - we need to do insertion and deletion
+      at the same time and M.alter does just that.
+
+      Also note that "M.update" cannot be used here because it does not insert if missing.
 
       Also coords should all be distinct, so it does not matter
       the order that this sequence of updates are performed.
      -}
-    updateBoard (coord, mVal) = M.update (const mVal) coord
+    alterBoard (coord, mVal) = M.alter (const mVal) coord
     mVals = (Just <$> vals) <> repeat Nothing
 
 applyMoveOnCoords :: GameRule -> Coords -> GameBoard -> (GameBoard, Int)
 applyMoveOnCoords gr coords bd =
-    (updateCoordsOnBoard coords cells' bd, score)
+    (alterCoordsOnBoard coords cells' bd, score)
   where
     cells = extractByCoords bd coords
     (cells', score) = mergeLine gr cells
