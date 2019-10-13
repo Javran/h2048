@@ -23,6 +23,14 @@ listToGameBoard (rows,cols) grid =
       Nothing -> []
       Just m' -> [(coord, m')]
 
+gameBoardToList :: (Int, Int) -> GameBoard -> [[Int]]
+gameBoardToList (rows,cols) gb =
+    (\r -> convert r <$> [0..cols-1]) <$> [0..rows-1]
+  where
+    convert rInd cInd = case M.lookup (rInd,cInd) gb of
+      Nothing -> 0
+      Just c -> cellToInt c
+
 spec :: Spec
 spec = do
   let gr = standardGameRule
@@ -81,8 +89,9 @@ spec = do
       let toGB = listToGameBoard (_grDim gr)
           -- used for testing while describing board as a list
           testCase listBd dir expected =
-            applyMove gr dir (toGB listBd)
-              `shouldBe` (fmap . first) toGB expected
+            ((fmap . first) (gameBoardToList (_grDim gr))
+              (applyMove gr dir (toGB listBd)))
+              `shouldBe` expected
           -- for making it convenient to test for multiple
           -- directions on the same board configuration.
           testCases listBd =
