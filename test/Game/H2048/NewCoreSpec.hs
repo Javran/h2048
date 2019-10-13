@@ -7,6 +7,7 @@ import Test.Hspec
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import qualified Data.Vector as V
+import Control.Monad
 
 import Game.H2048.NewCore
 
@@ -85,18 +86,21 @@ spec = do
       testCase DRight $
         fmap (\r -> fmap (r,) [4,3..0]) [0..2]
   describe "applyMove" $
-    specify "examples" $ do
+    describe "examples" $ do
       let toGB = listToGameBoard (_grDim gr)
           -- used for testing while describing board as a list
           testCase listBd dir expected =
-            ((fmap . first) (gameBoardToList (_grDim gr))
-              (applyMove gr dir (toGB listBd)))
+            (fmap . first) (gameBoardToList (_grDim gr))
+              (applyMove gr dir (toGB listBd))
               `shouldBe` expected
           -- for making it convenient to test for multiple
           -- directions on the same board configuration.
-          testCases listBd =
-            mapM_ (uncurry (testCase listBd))
-      testCases
+          testCases descPref listBd expects =
+            forM_ expects $ \(dir, expectedListBd) ->
+              specify (descPref <> ", " <> show dir) $
+                testCase listBd dir expectedListBd
+
+      testCases "case #0"
         [ [2,2,2,2]
         , [2,4,4,2]
         , [2,4,4,2]
@@ -114,16 +118,29 @@ spec = do
                   , [4,8,8,4]
                   , [4,2,2,4]
                   ], 32))
-        , ( DUp
+        , ( DLeft
           , Just ([ [4,4,0,0]
                   , [2,8,2,0]
                   , [2,8,2,0]
                   , [4,4,0,0]
                   ], 32))
-        , ( DUp
+        , ( DRight
           , Just ([ [0,0,4,4]
                   , [0,2,8,2]
                   , [0,2,8,2]
                   , [0,0,4,4]
                   ], 32))
+        ]
+      testCases "case #1"
+        [ [2,2,4,4]
+        , [2,2,4,4]
+        , [8,8,0,0]
+        , [8,8,0,0]
+        ]
+        [ ( DUp
+          , Just ([ [ 4, 4 ,8, 8]
+                  , [16,16, 0, 0]
+                  , [ 0, 0, 0, 0]
+                  , [ 0, 0, 0, 0]
+                  ], 56))
         ]
