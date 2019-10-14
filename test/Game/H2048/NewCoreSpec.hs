@@ -88,6 +88,10 @@ spec = do
               `shouldBe` expected
       testCase DUp $
         fmap (\c -> fmap (,c) [0..2]) [0..4]
+      testCase DDown $
+        fmap (\c -> fmap (,c) [2,1,0]) [0..4]
+      testCase DLeft $
+        fmap (\r -> fmap (r,) [0..4]) [0..2]
       testCase DRight $
         fmap (\r -> fmap (r,) [4,3..0]) [0..2]
 
