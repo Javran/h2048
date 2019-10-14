@@ -35,6 +35,7 @@ gameBoardToList (rows,cols) gb =
 spec :: Spec
 spec = do
   let gr = standardGameRule
+
   describe "merge" $ do
     specify "no merge" $ do
       merge (Cell 1) (Cell 2) `shouldBe` Nothing
@@ -42,12 +43,14 @@ spec = do
     specify "merges" $ do
       merge (Cell 1) (Cell 1) `shouldBe` Just (Cell 2)
       merge (Cell 4) (Cell 4) `shouldBe` Just (Cell 5)
+
   describe "mergeWithScore" $
     specify "examples" $ do
       mergeWithScore gr (Cell 1) (Cell 1)
         `shouldBe` Just (Cell 2, 4)
       mergeWithScore gr (Cell 4) (Cell 4)
         `shouldBe` Just (Cell 5, 32)
+
   describe "mergeLines" $
     specify "examples" $ do
       let mergeLine' =
@@ -60,10 +63,12 @@ spec = do
       mergeLine' [4,8,8] `shouldBe` ([4,16], 16)
       mergeLine' [4,2,2,8] `shouldBe` ([4,4,8], 4)
       mergeLine' [2,2,2,2] `shouldBe` ([4,4], 8)
+
   describe "computeDistrib" $
     specify "examples" $
       computeDistrib (IM.fromList [(1,2),(2,5),(3,7),(4,6)])
         `shouldBe` V.fromList [(1,2),(2,7),(3,14),(4,20)]
+
   describe "dirToCoordsGroups" $ do
     specify "standard game examples" $ do
       let testCase dir expected =
@@ -85,6 +90,7 @@ spec = do
         fmap (\c -> fmap (,c) [0..2]) [0..4]
       testCase DRight $
         fmap (\r -> fmap (r,) [4,3..0]) [0..2]
+
   describe "applyMove" $
     describe "examples" $ do
       let toGB = listToGameBoard (_grDim gr)
