@@ -25,21 +25,14 @@ import qualified Data.Vector.Algorithms.Search as VA
 {-
   TODO: this is an overhaul of Game.H2048.Core .. hmm just for fun.
 
-  Differences will be:
+  Differences are:
 
   - Board is Map-based rather than any linear structure.
   - Use a newtype Cell = Cell Int to define tiers rather than using powers of 2.
   - Use tf-random for better random number generation.
-  - Less verbosity on API: when initializing or after player has taken a move,
+  - (TODO) Less verbosity on API: when initializing or after player has taken a move,
     the result will already have new cells inserted.
-  - Also I want to explore how can strategy be factored out from core.
-    For example, rules like the following is kind of arbitrary and one should
-    be able to change them without having to modify core:
-
-    - size of the board is 4x4. (_grDim)
-    - 90% time we get a 2, otherwise 4. (_grNewCellDistrib)
-    - get a 2048 to be considered having won. (_grHasWon)
-    - how many score you get by merging. (_grMergeAward)
+  - A GameRule data type for customizing game rules.
 
  -}
 
@@ -85,11 +78,14 @@ data GameRule
     -- newly generated cell should follow this distribution from cell tier to a weight.
     -- note that values in this IntMap must be non-empty.
   , _grNewCellDistrib :: IM.IntMap Int
+    -- how many cells to spawn at the beginning of a game.
+  , _grInitSpawn :: Int
   }
 
 standardGameRule :: GameRule
 standardGameRule = GameRule
     { _grDim = (4,4)
+    , _grInitSpawn = 2
     , _grNewCellDistrib = IM.fromList [(1, 9), (2,1)]
     , _grHasWon = any (>= goalCell) . _gsBoard
     , ..
@@ -184,9 +180,11 @@ applyMove gr dir bd = [ (bd', score) | bd /= bd' ]
 {-
   Pre-processing the distribution:
 
-  e.g. {a: 3, b: 4, c: 2} => [(a, 3), (b, 3+4), (c, 3+4+2)] = [(a, 3), (b, 7), (c, 9)]
+  e.g. {a: 3, b: 4, c: 2}
+  => [(a, 3), (b, 3+4), (c, 3+4+2)] = [(a, 3), (b, 7), (c, 9)]
 
-  after this is done, we can pick a value from 1 to the last element of this vector (in this case, 9.),
+  after this is done, we can pick a value
+  from 1 to the last element of this vector (in this case, 9.),
   and lookup the corresponding element.
 
  -}
