@@ -34,14 +34,15 @@ spawnNewCell emptyCells =
     then pure Nothing
     else do
       i <- gameRandomR (0, S.size emptyCells - 1)
-      -- TODO: it's wasteful to compute this over and over again.
-      distrib <- asks (computeDistrib . _grNewCellDistrib)
+      distrib <- asks _grNewCellDistrib
       let v = S.toAscList emptyCells !! i
       g <- gets _gsGen
       let (tier, g') = randomPick distrib g
       modify (\s -> s { _gsGen = g' })
       pure $ Just ((v, Cell tier), S.delete v emptyCells)
 
+-- this function should only fail when there is insufficient space
+-- to fill an empty board with # of initial cell spawn specified in GameRule.
 newGame :: Monad m => GameplayT m ()
 newGame = do
   (rowCnt, colCnt) <- asks _grDim

@@ -72,7 +72,8 @@ data GameRule
   , _grMergeAward :: CellTier -> Int
     -- newly generated cell should follow this distribution from cell tier to a weight.
     -- note that values in this IntMap must be non-empty.
-  , _grNewCellDistrib :: IM.IntMap Int
+    -- use "computeDistrib" to compute this field.
+  , _grNewCellDistrib :: V.Vector (Int, Int)
     -- how many cells to spawn at the beginning of a game.
   , _grInitSpawn :: Int
   }
@@ -81,7 +82,7 @@ standardGameRule :: GameRule
 standardGameRule = GameRule
     { _grDim = (4,4)
     , _grInitSpawn = 2
-    , _grNewCellDistrib = IM.fromList [(1, 9), (2,1)]
+    , _grNewCellDistrib = computeDistrib $ IM.fromList [(1, 9), (2,1)]
     -- TODO: this "hasWon" function seems to be only blocker
     -- for separating game rule and game state, removed for now
     -- but we'd like to recover this or find a reasonable alternative for it.
