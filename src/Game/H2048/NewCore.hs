@@ -34,6 +34,9 @@ import qualified Data.Vector.Algorithms.Search as VA
     the result will already have new cells inserted.
   - A GameRule data type for customizing game rules.
 
+  Note that this module should be considered internal,
+  instead, use Game.H2048.GameState.
+
  -}
 
 type CellTier = Int
@@ -53,12 +56,6 @@ merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 type Coord = (Int, Int) -- (<row>, <col>) 0-based.
 type GameBoard = M.Map Coord Cell
 
-data GameState
-  = GameState
-    { _gsScore :: Int
-    , _gsBoard :: GameBoard
-    }
-
 {-
   TODO: parametrize mergeAward and newCellDistrib on GameState.
   For now this is complicated and unnecessary.
@@ -71,8 +68,6 @@ data GameRule
   = GameRule
   { -- dimension of the board. (<# of rows>, <# of cols>)
     _grDim :: (Int, Int)
-    -- whether the play has won given the current game state.
-  , _grHasWon :: GameState -> Bool
     -- score awarded given GameState and Cell **before** the merge has happened.
   , _grMergeAward :: CellTier -> Int
     -- newly generated cell should follow this distribution from cell tier to a weight.
@@ -87,11 +82,14 @@ standardGameRule = GameRule
     { _grDim = (4,4)
     , _grInitSpawn = 2
     , _grNewCellDistrib = IM.fromList [(1, 9), (2,1)]
-    , _grHasWon = any (>= goalCell) . _gsBoard
+    -- TODO: this "hasWon" function seems to be only blocker
+    -- for separating game rule and game state, removed for now
+    -- but we'd like to recover this or find a reasonable alternative for it.
+    -- , _grHasWon = any (>= goalCell) . _gsBoard
     , ..
     }
   where
-    goalCell = intToCell 2048
+    -- goalCell = intToCell 2048
     _grMergeAward ct = shiftL 1 (ct+1)
 
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
