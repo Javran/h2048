@@ -1,7 +1,6 @@
 module Game.H2048.GameState where
 
 import Control.Monad.RWS.Strict
-import Data.Function
 import System.Random.TF
 import System.Random.TF.Instances
 
@@ -29,20 +28,24 @@ gameRandomR loHi = do
   let (v, g') = randomR loHi g
   v <$ modify (\s -> s { _gsGen = g'})
 
-spawnNewCell :: Monad m => S.Set Coord -> GameplayT m (Maybe (Coord, S.Set Coord))
+spawnNewCell :: Monad m => S.Set Coord -> GameplayT m (Maybe ((Coord, Cell), S.Set Coord))
 spawnNewCell emptyCells =
   if S.null emptyCells
     then pure Nothing
     else do
       i <- gameRandomR (0, S.size emptyCells - 1)
+      -- TODO: it's wasteful to compute this over and over again.
+      distrib <- asks (computeDistrib . _grNewCellDistrib)
       let v = S.toAscList emptyCells !! i
-      pure $ Just (v, S.delete v emptyCells)
+      g <- gets _gsGen
+      let (tier, g') = randomPick distrib g
+      modify (\s -> s { _gsGen = g' })
+      pure $ Just ((v, Cell tier), S.delete v emptyCells)
 
 newGame :: Monad m => GameplayT m ()
 newGame = do
   (rowCnt, colCnt) <- asks _grDim
   initSpawn <- asks _grInitSpawn
-  distrib <- asks (computeDistrib . _grNewCellDistrib)
   let allCells =
         S.fromList [ (r,c) | r <- [0..rowCnt-1], c <- [0..colCnt-1] ]
   newBoard <-
@@ -52,14 +55,11 @@ newGame = do
              else do
                m <- spawnNewCell emptyCells
                case m of
-                 Just (coord, emptyCells') -> do
-                   g <- gets _gsGen
-                   let (tier, g') = randomPick distrib g
-                   modify (\s -> s { _gsGen = g' })
-                   let curBoard' = M.insert coord (Cell tier) curBoard
-                   loop curBoard' (needSpawn - 1) emptyCells'
+                 Just ((coord, cell), emptyCells') ->
+                   let curBoard' = M.insert coord cell curBoard
+                   in loop curBoard' (needSpawn - 1) emptyCells'
                  Nothing ->
-                   error "Cannot create new game, insufficient space for empty cells."
+                   error "Failed to create new game, no more space for empty cells."
         )
       M.empty
       initSpawn
