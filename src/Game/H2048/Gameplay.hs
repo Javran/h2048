@@ -45,10 +45,8 @@ spawnNewCell emptyCells =
 -- to fill an empty board with # of initial cell spawn specified in GameRule.
 newGame :: Monad m => GameplayT m ()
 newGame = do
-  (rowCnt, colCnt) <- asks _grDim
+  coords <- asks allCoords
   initSpawn <- asks _grInitSpawn
-  let allCells =
-        S.fromList [ (r,c) | r <- [0..rowCnt-1], c <- [0..colCnt-1] ]
   newBoard <-
     fix (\loop curBoard needSpawn emptyCells ->
            if needSpawn == 0
@@ -64,7 +62,7 @@ newGame = do
         )
       M.empty
       initSpawn
-      allCells
+      (S.fromDistinctAscList coords)
   modify (\s -> s { _gsScore = 0, _gsBoard = newBoard } )
 
 {-
@@ -78,7 +76,7 @@ newGame = do
 stepGame :: Monad m => Dir -> GameplayT m (Maybe [Dir])
 stepGame dir = do
   gr <- ask
-  (rowCnt, colCnt) <- asks _grDim
+  coords <- asks allCoords
   bd <- gets _gsBoard
   case applyMove gr dir bd of
     Nothing -> pure Nothing
@@ -87,9 +85,7 @@ stepGame dir = do
       -- if a move can be applied successfully, that means
       -- there must be empty cell on the board,
       -- in other words, spawnNewCell should not fail.
-      let allCoords =
-            S.fromList [ (r,c) | r <- [0..rowCnt-1], c <- [0..colCnt-1] ]
-          emptyCoords = S.filter (`M.notMember` bd') allCoords
+      let emptyCoords = S.filter (`M.notMember` bd') (S.fromDistinctAscList coords)
       mResult <- spawnNewCell emptyCoords
       case mResult of
         Nothing -> error "Failed to spawn new cell, this should not happen."

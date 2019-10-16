@@ -142,6 +142,11 @@ dirToCoordsGroups gr = \case
 extractByCoords :: GameBoard -> [Coord] -> [Cell]
 extractByCoords bd = mapMaybe (bd M.!?)
 
+-- return a unique, sorted list of all coordinations of a board.
+allCoords :: GameRule -> Coords
+allCoords GameRule { _grDim = (rowCnt, colCnt) } =
+  [ (r,c) | r <- [0..rowCnt-1], c <- [0..colCnt-1] ]
+
 alterCoordsOnBoard :: [Coord] -> [Cell] -> GameBoard -> GameBoard
 alterCoordsOnBoard coords vals =
     appEndo (foldMap (Endo . alterBoard) (zip coords mVals))

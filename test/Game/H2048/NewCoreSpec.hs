@@ -1,13 +1,14 @@
 {-# LANGUAGE TupleSections #-}
 module Game.H2048.NewCoreSpec where
 
+import Control.Monad
 import Data.Bifunctor
 import Test.Hspec
 
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import qualified Data.Vector as V
-import Control.Monad
+import qualified Data.Set as S
 
 import Game.H2048.NewCore
 
@@ -68,6 +69,15 @@ spec = do
     specify "examples" $
       computeDistrib (IM.fromList [(1,2),(2,5),(3,7),(4,6)])
         `shouldBe` V.fromList [(1,2),(2,7),(3,14),(4,20)]
+
+  describe "allCoords" $ do
+    specify "standard" $
+      (S.toAscList . S.fromList . allCoords $ gr) `shouldBe`
+        allCoords gr
+    specify "non-square" $
+      let gr' = gr { _grDim = (4,5) }
+      in (S.toAscList . S.fromList . allCoords $ gr') `shouldBe`
+         allCoords gr'
 
   describe "dirToCoordsGroups" $ do
     specify "standard game examples" $ do
