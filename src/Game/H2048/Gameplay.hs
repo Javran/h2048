@@ -66,3 +66,34 @@ newGame = do
       initSpawn
       allCells
   modify (\s -> s { _gsScore = 0, _gsBoard = newBoard } )
+
+{-
+
+  Try to apply a move on current state of the game, returns:
+
+  - `Nothing` if this move is invalid
+  - `Just moves` if this move is valid, also returns all possible moves
+    after the board is fully updated (meaning new cell has been spawned).
+ -}
+stepGame :: Monad m => Dir -> GameplayT m (Maybe [Dir])
+stepGame dir = do
+  gr <- ask
+  (rowCnt, colCnt) <- asks _grDim
+  bd <- gets _gsBoard
+  case applyMove gr dir bd of
+    Nothing -> pure Nothing
+    Just (bd', award) -> do
+      modify (\s -> s { _gsScore = _gsScore s + award })
+      -- if a move can be applied successfully, that means
+      -- there must be empty cell on the board,
+      -- in other words, spawnNewCell should not fail.
+      let allCoords =
+            S.fromList [ (r,c) | r <- [0..rowCnt-1], c <- [0..colCnt-1] ]
+          emptyCoords = S.filter (`M.notMember` bd') allCoords
+      mResult <- spawnNewCell emptyCoords
+      case mResult of
+        Nothing -> error "Failed to spawn new cell, this should not happen."
+        Just ((coord, cell), _) -> do
+          let bd'' = M.insert coord cell bd'
+          modify (\s -> s { _gsBoard = bd'' })
+          pure $ Just (possibleMoves gr bd'')

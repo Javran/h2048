@@ -176,6 +176,10 @@ applyMove gr dir bd = [ (bd', score) | bd /= bd' ]
         bd
     score = sum (scores :: [Int])
 
+possibleMoves :: GameRule -> GameBoard -> [Dir]
+possibleMoves gr bd =
+  [ d | d <- [minBound .. maxBound], isJust (applyMove gr d bd) ]
+
 {-
   Pre-processing the distribution:
 
