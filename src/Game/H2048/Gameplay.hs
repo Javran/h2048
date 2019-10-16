@@ -1,4 +1,4 @@
-module Game.H2048.GameState where
+module Game.H2048.Gameplay where
 
 import Control.Monad.RWS.Strict
 import System.Random.TF

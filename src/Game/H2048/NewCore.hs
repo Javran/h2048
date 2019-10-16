@@ -35,7 +35,7 @@ import qualified Data.Vector.Algorithms.Search as VA
   - A GameRule data type for customizing game rules.
 
   Note that this module should be considered internal,
-  instead, use Game.H2048.GameState.
+  instead, use Game.H2048.Gameplay.
 
  -}
 
