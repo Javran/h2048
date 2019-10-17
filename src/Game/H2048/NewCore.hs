@@ -54,6 +54,11 @@ merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 
 type Coord = (Int, Int) -- (<row>, <col>) 0-based.
+
+{-
+  Note that the board could be empty to indicate that
+  it has not been initialized yet.
+ -}
 type GameBoard = M.Map Coord Cell
 
 {-
@@ -172,7 +177,12 @@ applyMoveOnCoords gr coords bd =
 
 -- apply a game move on a board.
 applyMove :: GameRule -> Dir -> GameBoard -> Maybe (GameBoard, Int)
-applyMove gr dir bd = [ (bd', score) | bd /= bd' ]
+applyMove gr dir bd =
+    {-
+      Note that a GameBoard could be empty to indicate that it is uninitialized,
+      in which case every move will fail because no change on the board could be made.
+     -}
+    [ (bd', score) | bd /= bd' ]
   where
     csGroups = dirToCoordsGroups gr dir
     (scores, bd') =

@@ -215,3 +215,6 @@ spec = do
         , [8,4,8,4]
         , [2,8,4,2]
         ] $ fmap (,Nothing) [DUp, DDown, DLeft, DRight]
+      testCases "uninitialized"
+        (replicate 4 (replicate 4 0)) $
+        fmap (,Nothing) [DUp, DDown, DLeft, DRight]
