@@ -44,3 +44,25 @@ spawnNewCell gp emptyCells = do
       distrib = _grNewCellDistrib . _gpRule $ gp'
       (tier, gp'') = randomOp (randomPick distrib) gp'
   pure (((v, Cell tier), S.delete v emptyCells), gp'')
+
+-- this function should only fail when there is insufficient space
+-- to fill an empty board with # of initial cell spawn specified in GameRule.
+newGame :: Gameplay -> Gameplay
+newGame gp =
+    fix (\loop curGp spawnTodo emptyCells ->
+            if spawnTodo <= 0
+              then curGp
+              else case spawnNewCell curGp emptyCells of
+                Nothing ->
+                  error "Failed to create new game, no more space for empty cells."
+                Just (((coord, cell), emptyCells'), curGp') ->
+                  let curGp'' = curGp' { _gpBoard = M.insert coord cell (_gpBoard curGp') }
+                  in loop curGp'' (spawnTodo - 1) emptyCells'
+        )
+      (gp { _gpScore = 0 })
+      initSpawn
+      (S.fromDistinctAscList coords)
+  where
+    rule = _gpRule gp
+    coords = allCoords rule
+    initSpawn = _grInitSpawn rule
