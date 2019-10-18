@@ -16,13 +16,6 @@ import Game.H2048.NewCore
   the stack of transformers.
  -}
 
-data GameState
-  = GameState
-    { _gsScore :: Int
-    , _gsBoard :: GameBoard
-    , _gsGen :: TFGen
-    }
-
 data Gameplay
   = Gameplay
   { _gpRule :: GameRule -- game rules, must be read-only after creation.
@@ -31,14 +24,19 @@ data Gameplay
   , _gpGen :: TFGen
   }
 
-todo :: a
-todo = error "TODO"
-
 randomOp :: (TFGen -> (a, TFGen)) -> Gameplay -> (a, Gameplay)
 randomOp op gp = (v, gp { _gpGen = g' })
   where
     g = _gpGen gp
     (v, g') = op g
+
+mkGameplay :: TFGen -> GameRule -> Gameplay
+mkGameplay g r =
+  Gameplay
+    r
+    0
+    M.empty -- default board is empty - no move is allowed on it.
+    g
 
 spawnNewCell :: Gameplay -> S.Set Coord -> Maybe (((Coord, Cell), S.Set Coord), Gameplay)
 spawnNewCell gp emptyCells = do
