@@ -73,3 +73,32 @@ newGame gp =
     rule = _gpRule gp
     coords = allCoords rule
     initSpawn = _grInitSpawn rule
+
+{-
+  Try to apply a move on current state of the game, returns:
+  - `Nothing` if this move is invalid
+  - `Just moves` if this move is valid, also returns all possible moves
+    after the board is fully updated (meaning new cell has been spawned).
+ -}
+stepGame :: Dir -> Gameplay -> Maybe Gameplay
+stepGame dir gp = do
+  let rule = _gpRule gp
+      coords = allCoords rule
+      bd = _gpBoard gp
+  {-
+    if a move can be applied successfully, that means
+    there must be empty cell on the board,
+    in other words, spawnNewCell should not fail.
+   -}
+  (bd', award) <- applyMove rule dir bd
+  let emptyCoords = S.filter (`M.notMember` bd') (S.fromDistinctAscList coords)
+  (((coordNew, cellNew), _), gp') <- spawnNewCell gp emptyCoords
+  pure gp'
+    { _gpBoard = M.insert coordNew cellNew bd'
+      {-
+        This assumes that spawnNewCell does not change _gpScore,
+        otherwise whatever update will be overwritten by following one.
+       -}
+    , _gpScore = _gpScore gp + award
+    }
+
