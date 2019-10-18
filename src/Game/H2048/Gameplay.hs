@@ -9,6 +9,13 @@ import qualified Data.Set as S
 
 import Game.H2048.NewCore
 
+{-
+  Just a quick note that if we were to implement Gameplay
+  in terms of monad transformer, MonadTransControl might be
+  useful to allow passing IO actions to brick while keeping
+  the stack of transformers.
+ -}
+
 data GameState
   = GameState
     { _gsScore :: Int
