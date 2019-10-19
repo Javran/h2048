@@ -25,14 +25,6 @@ valToTier = countTrailingZeros -- tier starting from 1
 tierAttr :: Int -> AttrName
 tierAttr = ("tier" <>) . fromString . show
 
-boardSample :: Board
-boardSample = mkBoard
-  [ [1,2,4,8]
-  , [16,32,64,128]
-  , [256,512,1024,2048]
-  , [0,0,0,0]
-  ]
-
 boardWidget :: AppState -> Widget RName
 boardWidget (bdOpaque, _) =
     joinBorders
@@ -59,7 +51,7 @@ boardWidget (bdOpaque, _) =
             else
               withAttr (tierAttr . valToTier $ val)
               . padLeft Max
-              $ str (show (bd !! r !! c) <> " ")
+              $ str (show val <> " ")
 
 ui :: AppState -> Widget RName
 ui s@(bd,score) =
