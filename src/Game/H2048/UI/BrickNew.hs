@@ -86,8 +86,11 @@ handleEvent s e = case e of
   VtyEvent (EvKey (KChar 'q') []) -> halt s
   VtyEvent (EvKey (KChar 'r') []) ->
     let initState = mkGameplay (_gpGen s) (_gpRule s)
-    in continue initState
-  VtyEvent (EvKey k []) -> continue s -- TODO
+    in continue (newGame initState)
+  VtyEvent (EvKey k [])
+    | Just dir <- getMove k
+    , Just gp' <- stepGame dir s ->
+        continue gp'
   _ -> continue s
 
 getMove :: Key -> Maybe Dir
@@ -128,4 +131,4 @@ main = do
                     ]
         , appChooseCursor = neverShowCursor
         }
-  void $ defaultMain app initState
+  void $ defaultMain app (newGame initState)
