@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Game.H2048.UI.Brick where
 
 import Brick
@@ -8,13 +8,10 @@ import Data.Bits
 import Data.Functor
 import Data.List
 import Data.String
-import Data.Maybe
 import Graphics.Vty.Attributes
 import Graphics.Vty.Input.Events
-import Control.Monad.IO.Class
 
 import System.Random.TF
-import System.Random.TF.Instances
 
 import Game.H2048.NewCore
 import Game.H2048.Gameplay
