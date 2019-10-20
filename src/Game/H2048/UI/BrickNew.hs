@@ -66,19 +66,18 @@ ui s =
       <=> hCenter (str ctrlHelpMsg)
   where
     score = _gpScore s
-    -- GS {hasWon, isAlive} = gameState bd -- TODO
-    hasWon = False
-    isAlive = True
+    won = hasWon s
+    alive = isAlive s
     moveHelp = "i / k / j / l / arrow keys to move, "
     commonHelp = "q to quit, r to restart."
     {- TODO: this starts getting awkward, perhaps time to split the widget. -}
     ctrlHelpMsg =
-      if not isAlive
+      if not alive
         then
-          (if hasWon then "You won, but no more moves. " else "No more moves, game over. ")
+          (if won then "You won, but no more moves. " else "No more moves, game over. ")
           <> commonHelp
         else
-          (if hasWon then "You've won! " else "")
+          (if won then "You've won! " else "")
           <> moveHelp <> commonHelp
 
 handleEvent :: AppState -> BrickEvent RName e -> EventM RName (Next AppState)

@@ -100,3 +100,12 @@ stepGame dir gp = do
     , _gpScore = _gpScore gp + award
     }
 
+isAlive :: Gameplay -> Bool
+isAlive gp = case possibleMoves (_gpRule gp) (_gpBoard gp) of
+  [] -> False
+  _ -> True
+
+hasWon :: Gameplay -> Bool
+hasWon gp = any (>= c2048) (_gpBoard gp)
+  where
+    c2048 = intToCell 2048
