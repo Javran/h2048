@@ -13,11 +13,17 @@ import Graphics.Vty.Attributes
 import Graphics.Vty.Input.Events
 import Control.Monad.IO.Class
 
-import Game.H2048.Core
+import System.Random.TF
+import System.Random.TF.Instances
+
+import Game.H2048.NewCore
+import Game.H2048.Gameplay
+
+import qualified Data.Map.Strict as M
 
 data RName = RBoard deriving (Eq, Ord)
 
-type AppState = (Board, Int {- for tracking total score -})
+type AppState = Gameplay
 
 valToTier :: Int -> Int
 valToTier = countTrailingZeros -- tier starting from 1
@@ -26,12 +32,12 @@ tierAttr :: Int -> AttrName
 tierAttr = ("tier" <>) . fromString . show
 
 boardWidget :: AppState -> Widget RName
-boardWidget (bdOpaque, _) =
+boardWidget s =
     joinBorders
     . border
     $ grid
   where
-    bd = fromBoard bdOpaque
+    bd = _gpBoard s
     grid =
       hLimit (hMax*4+3) $ vBox (intersperse hBorder (row <$> [0..3]))
     row :: Int -> Widget RName
@@ -44,46 +50,46 @@ boardWidget (bdOpaque, _) =
     cell r c =
       vLimit 1 . hLimit hMax $ cellW
       where
-        val = bd !! r !! c
-        cellW =
-          if val == 0
-            then fill ' '
-            else
-              withAttr (tierAttr . valToTier $ val)
+        mVal = bd M.!? (r,c)
+        cellW = case mVal of
+          Nothing -> fill ' '
+          Just ce@(Cell tier) ->
+              withAttr (tierAttr tier)
               . padLeft Max
-              $ str (show val <> " ")
+              $ str (show (cellToInt ce) <> " ")
 
 ui :: AppState -> Widget RName
-ui s@(bd,score) =
+ui s =
     center $
       hCenter (boardWidget s)
       <=> hCenter (str $ "Current Score: " <> show score)
       <=> hCenter (str ctrlHelpMsg)
   where
-    GS {hasWon, isAlive} = gameState bd
+    score = _gpScore s
+    won = hasWon s
+    alive = isAlive s
     moveHelp = "i / k / j / l / arrow keys to move, "
     commonHelp = "q to quit, r to restart."
     {- TODO: this starts getting awkward, perhaps time to split the widget. -}
     ctrlHelpMsg =
-      if not isAlive
+      if not alive
         then
-          (if hasWon then "You won, but no more moves. " else "No more moves, game over. ")
+          (if won then "You won, but no more moves. " else "No more moves, game over. ")
           <> commonHelp
         else
-          (if hasWon then "You've won! " else "")
+          (if won then "You've won! " else "")
           <> moveHelp <> commonHelp
 
 handleEvent :: AppState -> BrickEvent RName e -> EventM RName (Next AppState)
-handleEvent s@(bd,score) e = case e of
+handleEvent s e = case e of
   VtyEvent (EvKey (KChar 'q') []) -> halt s
   VtyEvent (EvKey (KChar 'r') []) ->
-    liftIO initGameBoard >>= continue
+    let initState = mkGameplay (_gpGen s) (_gpRule s)
+    in continue (newGame initState)
   VtyEvent (EvKey k [])
-    | Just dir <- getMove k -> case updateBoard dir bd of
-        Nothing -> continue s
-        Just (bd', awarded) -> do
-          bd'' <- fromJust <$> liftIO (insertNewCell bd')
-          continue (bd'', score+awarded)
+    | Just dir <- getMove k
+    , Just gp' <- stepGame dir s ->
+        continue gp'
   _ -> continue s
 
 getMove :: Key -> Maybe Dir
@@ -99,8 +105,9 @@ getMove _ = Nothing
 
 main :: IO ()
 main = do
-  initGb <- initGameBoard
-  let app =
+  g <- newTFGen
+  let initState = mkGameplay g standardGameRule
+      app =
         App
         { appDraw = \s -> [ui s]
         , appHandleEvent = handleEvent
@@ -123,5 +130,4 @@ main = do
                     ]
         , appChooseCursor = neverShowCursor
         }
-      initState = initGb
-  void $ defaultMain app initState
+  void $ defaultMain app (newGame initState)
