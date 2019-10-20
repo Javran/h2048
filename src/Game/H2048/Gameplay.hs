@@ -1,4 +1,22 @@
-module Game.H2048.Gameplay where
+module Game.H2048.Gameplay
+  ( Gameplay
+  , _gpRule
+  , _gpScore
+  , _gpBoard
+  , _gpGen
+  , mkGameplay
+  , spawnNewCell
+  , Cell
+  , _cTier
+  , Dir(..)
+  , newGame
+  , stepGame
+  , standardGameRule
+  , hasWon
+  , isAlive
+  , cellToInt
+  , intToCell
+  ) where
 
 import Control.Monad.RWS.Strict
 import System.Random.TF

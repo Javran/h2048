@@ -10,10 +10,8 @@ import Data.List
 import Data.String
 import Graphics.Vty.Attributes
 import Graphics.Vty.Input.Events
-
 import System.Random.TF
 
-import Game.H2048.NewCore
 import Game.H2048.Gameplay
 
 import qualified Data.Map.Strict as M
@@ -50,7 +48,7 @@ boardWidget s =
         mVal = bd M.!? (r,c)
         cellW = case mVal of
           Nothing -> fill ' '
-          Just ce@(Cell tier) ->
+          Just ce | tier <- _cTier ce ->
               withAttr (tierAttr tier)
               . padLeft Max
               $ str (show (cellToInt ce) <> " ")
