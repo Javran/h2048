@@ -6,16 +6,16 @@ import Game.H2048.Core
 
 spec :: Spec
 spec = do
+  {- TODO: old Core is no longer in use, migrate tests to new one. -}
   describe "compactLine" $
+    -- NOTE: this part has been migrated to new core.
     specify "examples" $ do
       let clTest inp expected =
               compactLine' (mkLine inp)
                 `shouldBe` (eScore, mkLine eLine)
             where
               (eScore, eLine) = expected
-      clTest [0,0,0,0] (0,[0,0,0,0])
       clTest [1,0,0,1] (2,[2,0,0,0])
-      clTest [2,2,2,2] (8,[4,4,0,0])
       clTest [2,4,4,2] (8,[2,8,2,0])
       clTest [2,4,8,2] (0,[2,4,8,2])
       clTest [0,1,0,1] (2,[2,0,0,0])

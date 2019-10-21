@@ -59,11 +59,14 @@ spec = do
             . mergeLine gr
             . fmap intToCell
       mergeLine' [] `shouldBe` ([], 0)
+      mergeLine' [1,1] `shouldBe` ([2], 2)
       mergeLine' [2,2,4] `shouldBe` ([4,4], 4)
       mergeLine' [4,4,4] `shouldBe` ([8,4], 8)
       mergeLine' [4,8,8] `shouldBe` ([4,16], 16)
       mergeLine' [4,2,2,8] `shouldBe` ([4,4,8], 4)
+      mergeLine' [2,4,4,2] `shouldBe` ([2,8,2], 8)
       mergeLine' [2,2,2,2] `shouldBe` ([4,4], 8)
+      mergeLine' [1,2] `shouldBe` ([1,2], 0)
 
   describe "computeDistrib" $
     specify "examples" $
