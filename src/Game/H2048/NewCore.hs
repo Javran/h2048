@@ -23,19 +23,30 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Algorithms.Search as VA
 
 {-
-  TODO: this is an overhaul of Game.H2048.Core .. hmm just for fun.
+
+  Note that this module should be considered internal, and only imported
+  by Game.H2048.Gameplay or unit test modules.
+
+  This is an overhaul and improvement of the old Game.H2048.Core module.
 
   Differences are:
 
   - Board is Map-based rather than any linear structure.
-  - Use a newtype Cell = Cell Int to define tiers rather than using powers of 2.
-  - Use tf-random for better random number generation.
-  - (TODO) Less verbosity on API: when initializing or after player has taken a move,
-    the result will already have new cells inserted.
-  - A GameRule data type for customizing game rules.
+    This makes it convenient to change values or scale to support non-standard grid
+    (i.e. any board other than 4x4)
 
-  Note that this module should be considered internal,
-  instead, use Game.H2048.Gameplay.
+  - Use a newtype Cell = Cell Int to define tiers rather than using powers of 2.
+    This results in a compact representation of the board, and this also allows
+    separating how data are displayed and how data are represented - you can
+    use powers of two or some English words, which has no effect on the core itself.
+
+  - Use tf-random for better random number generation.
+
+  - Less verbosity on API. This module is now an internal one that only implements
+    some key operations and all of the rest are implemented or re-exported through
+    Game.H2048.Gameplay. This minimized the code for game logic on client side.
+
+  - A GameRule data type for customizing game rules.
 
  -}
 
