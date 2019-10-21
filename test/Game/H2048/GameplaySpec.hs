@@ -5,7 +5,7 @@ module Game.H2048.GameplaySpec
 import Test.Hspec
 import System.Random.TF
 
-import Game.H2048.NewCoreSpec (listToGameBoard)
+import Game.H2048.CoreSpec (listToGameBoard)
 import Game.H2048.Gameplay
 
 spec :: Spec

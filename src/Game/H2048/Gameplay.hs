@@ -27,7 +27,7 @@ import System.Random.TF.Instances
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 
-import Game.H2048.NewCore
+import Game.H2048.Core
 
 {-
   Just a quick note that if we were to implement Gameplay

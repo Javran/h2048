@@ -1,5 +1,5 @@
 {-# LANGUAGE TupleSections #-}
-module Game.H2048.NewCoreSpec
+module Game.H2048.CoreSpec
   ( spec
   , listToGameBoard
   , gameBoardToList
@@ -14,7 +14,7 @@ import qualified Data.Map as M
 import qualified Data.Vector as V
 import qualified Data.Set as S
 
-import Game.H2048.NewCore
+import Game.H2048.Core
 
 listToGameBoard :: (Int, Int) -> [[Int]] -> GameBoard
 listToGameBoard (rows,cols) grid =

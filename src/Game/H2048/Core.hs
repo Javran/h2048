@@ -4,7 +4,7 @@
   , LambdaCase
   , RecordWildCards
   #-}
-module Game.H2048.NewCore
+module Game.H2048.Core
   ( Coord
   , Dir(..)
   , Cell(..)

@@ -19,8 +19,6 @@ dependencies:
 - base
 - brick
 - containers
-- lens
-- MonadRandom
 - mtl
 - text
 - tf-random
