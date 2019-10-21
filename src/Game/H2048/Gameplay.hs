@@ -6,9 +6,11 @@ module Game.H2048.Gameplay
   , _gpGen
   , mkGameplay
   , spawnNewCell
+  , GameBoard
   , Cell
   , _cTier
   , Dir(..)
+  , GameRule(..)
   , newGame
   , stepGame
   , standardGameRule

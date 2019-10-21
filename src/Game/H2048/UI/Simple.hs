@@ -9,34 +9,34 @@
 A simple CLI implemention of Game 2048
 
 -}
-{-# LANGUAGE NamedFieldPuns #-}
 module Game.H2048.UI.Simple
   ( drawBoard
   , playGame
   , main
-  , Board
   )
 where
 
-import Data.Maybe
-import Game.H2048.Core
-import Data.List
-import Text.Printf
-import Control.Monad.IO.Class
-import Control.Monad.Random
-import Control.Applicative
 import Control.Arrow
+import Data.Function
+import Data.Functor
+import Data.List
 import System.IO
+import System.Random.TF
+import Text.Printf
 
--- a simple UI implemented by outputing strings
+import qualified Data.Map.Strict as M
+
+import Game.H2048.Gameplay
+
+-- a simple command line interface implemented by simply outputing strings
 
 -- | simple help string
 helpString :: String
 helpString =  "'i'/'k'/'j'/'l' to move, 'q' to quit."
 
 -- | pretty print the board to stdout
-drawBoard :: Board -> IO ()
-drawBoard bd =
+drawBoard :: Gameplay -> IO ()
+drawBoard gp =
     {-
      a cell will be represented in the output as following:
 
@@ -52,97 +52,85 @@ drawBoard bd =
      * finalize this line by printing out the horizontal "+--+--+..."
     -}
     putStrLn horizSeparator >>
-    mapM_ drawRow (fromBoard bd)
+    mapM_ drawRow [0 .. rowCount - 1]
   where
+    bd = _gpBoard gp
+    (rowCount, colCount) =  _grDim . _gpRule $ gp
     cellWidth = length " 2048 "
     -- build up the separator: "+--+--+....+"
     horizSeparator' = intercalate "+" (replicate 4 (replicate cellWidth '-'))
     horizSeparator = "+" ++ horizSeparator' ++ "+"
 
     -- pretty string for a cell (without border)
-    prettyCell c =
-      if c == 0
-        then replicate cellWidth ' '
-        else printf " %4d " c
-             
-    drawRow row = do
+    prettyCell :: Int -> Int -> String
+    prettyCell r c = case bd M.!? (r,c) of
+      Nothing -> replicate cellWidth ' '
+      Just cell -> printf " %4d " (cellToInt cell)
+
+    drawRow :: Int -> IO ()
+    drawRow rowInd = do
       -- prints "| <cell1> | <cell2> | ... |"
       putChar '|'
-      mapM_ (prettyCell >>> putStr >>> (>> putChar '|')) row
+      mapM_ (prettyCell rowInd >>> putStr >>> (>> putChar '|')) [0 .. colCount - 1]
       putChar '\n'
       putStrLn horizSeparator
 
 -- | play game on a given board until user quits or game ends
-playGame :: (MonadIO m, MonadRandom m, Alternative m) => (Board, Int) -> m ()
-playGame args@(b,score) |
-  GS {hasWon, isAlive} <- gameState b =
-    if isAlive
-      then liftIO (handleUserMove hasWon) >>= handleGame
-      else liftIO (endGame args hasWon)
+playGame :: IO Gameplay
+playGame = do
+  g <- newTFGen
+  let initState = mkGameplay g standardGameRule
+  gameLoop (newGame initState)
  where
-   endGame (b',score') win = do
-     drawBoard b'
-     putStrLn $ if win then "You won" else "Game over"
-     _ <- printf "Final score: %d\n" score'
-     hFlush stdout
+   gameLoop gp = do
+     drawBoard gp
+     if isAlive gp
+       then processUserMove gp
+       else endGame gp
+
+   endGame gp = do
+     putStrLn $ if hasWon gp then "You won" else "Game over"
+     _ <- printf "Final score: %d\n" (_gpScore gp)
+     gp <$ hFlush stdout
+
    -- handle user move, print the board together with current score,
    -- return the next user move:
    -- + return Nothing only if user has pressed "q"
    -- + return Just <key>   if one of "ijkl" is pressed
-   handleUserMove w = fix $ \self -> do
+   processUserMove :: Gameplay -> IO Gameplay
+   processUserMove gp = fix $ \redo -> do
      let scoreFormat =
-           if w
+           if hasWon gp
              then "You win, current score: %d\n"
              else "Current score: %d\n"
-     drawBoard b
-     _ <- printf scoreFormat score
+     printf scoreFormat (_gpScore gp)
      hFlush stdout
      c <- getChar
      putStrLn ""
      hFlush stdout
-     -- TODO: customizable
      case c of
-       'q' -> pure Nothing
-       'i' -> putStrLn "Up"    >> pure (Just DUp)
-       'k' -> putStrLn "Down"  >> pure (Just DDown)
-       'j' -> putStrLn "Left"  >> pure (Just DLeft)
-       'l' -> putStrLn "Right" >> pure (Just DRight)
-       _ -> do
+       'q' -> pure gp
+       'i' -> putStrLn "Up" >> handleMove gp DUp
+       'k' -> putStrLn "Down" >> handleMove gp DDown
+       'j' -> putStrLn "Left" >> handleMove gp DLeft
+       'l' -> putStrLn "Right" >> handleMove gp DRight
+       _ ->
          -- user will not be on this branch
          -- if an invalid key is pressed
-         putStrLn helpString
-         self
-   handleGame =
-     maybe
-       -- user quit
-       (pure ())
-       -- user next move
-       -- 1. update the board according to user move
-       ((`updateBoard` b) >>>
-         -- 2. the update might succeed / fail
-         maybe
-           -- 2(a). the move is invalid, try again
-           (liftIO (putStrLn "Invalid move") >> playGame args)
-           -- 2(b). on success, insert new cell
-           (\(newBoard, scoreObtained) -> do
-               -- should always succeed
-               -- because when a successful move is done
-               -- there is at least one empty cell in the board
-               newB <- fromJust <$> insertNewCell newBoard
-               -- keep going, accumulate score
-               playGame (newB, score + scoreObtained)))
+         putStrLn helpString >> redo
+
+   handleMove :: Gameplay -> Dir -> IO Gameplay
+   handleMove gp dir = case stepGame dir gp of
+     Nothing -> putStrLn "Invalid move" >> gameLoop gp
+     Just gp' -> gameLoop gp'
 
 -- | the entry of Simple UI
 main :: IO ()
 main = do
-    bfMod <- hGetBuffering stdin
-    -- no buffering - don't wait for the "enter"
-    hSetBuffering stdin NoBuffering
-    g <- newStdGen
-    -- show some helpful messages
-    -- whether the user has read the README or not :)
-    putStrLn helpString
-    -- initialize game based on the random seed
-    _ <- evalRandT (initGameBoard >>= playGame) g
-    -- restoring buffering setting
-    hSetBuffering stdin bfMod
+  -- turn off buffering to not wait on a newline character.
+  hSetBuffering stdin NoBuffering
+  -- show some helpful messages
+  -- whether the user has read the README or not :)
+  putStrLn helpString
+  -- initialize game based on the random seed
+  void playGame
