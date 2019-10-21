@@ -4,7 +4,25 @@
   , LambdaCase
   , RecordWildCards
   #-}
-module Game.H2048.NewCore where
+module Game.H2048.NewCore
+  ( Coord
+  , Dir(..)
+  , Cell(..)
+  , GameRule(..)
+  , GameBoard
+  , randomPick
+  , allCoords
+  , applyMove
+  , possibleMoves
+  , intToCell, cellToInt
+  , standardGameRule
+  , merge
+  , mergeWithScore
+  , mergeLine
+  , dirToCoordsGroups
+  , computeDistrib
+  , testDistrib
+  ) where
 
 import Control.Monad.ST
 import Control.Monad.State
@@ -244,8 +262,8 @@ randomPick vec g = runST $ do
     ind <- VA.binarySearchLBy (comparing snd) mv (error "unused", val)
     pure (fst (vec V.! ind), g')
 
-experiment :: Int -> [(Int, Int)] -> IO ()
-experiment count xs = do
+testDistrib :: Int -> [(Int, Int)] -> IO ()
+testDistrib count xs = do
   let d = computeDistrib (IM.fromList xs)
   g <- newTFGen
   let picks =
