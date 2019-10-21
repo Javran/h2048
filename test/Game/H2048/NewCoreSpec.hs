@@ -1,5 +1,9 @@
 {-# LANGUAGE TupleSections #-}
-module Game.H2048.NewCoreSpec where
+module Game.H2048.NewCoreSpec
+  ( spec
+  , listToGameBoard
+  , gameBoardToList
+  ) where
 
 import Control.Monad
 import Data.Bifunctor
