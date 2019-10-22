@@ -2,7 +2,6 @@
     MonadComprehensions
   , TupleSections
   , LambdaCase
-  , RecordWildCards
   #-}
 module Game.H2048.Core
   ( Coord
@@ -126,14 +125,12 @@ standardGameRule :: GameRule
 standardGameRule = GameRule
     { _grDim = (4,4)
     , _grInitSpawn = 2
-    , _grNewCellDistrib = computeDistrib $ IM.fromList [(1, 9), (2,1)]
+    , _grNewCellDistrib = computeDistrib $ IM.fromList [(1, 9), (2, 1)]
     , _grHasWon =
         let c2048 = unsafeIntToCell 2048
         in any (>= c2048)
-    , ..
+    , _grMergeAward = \prevTier -> (prevTier+1)*2
     }
-  where
-    _grMergeAward ct = shiftL 1 (ct+1)
 
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
 mergeWithScore gr a b = do
