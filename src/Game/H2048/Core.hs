@@ -129,7 +129,7 @@ standardGameRule = GameRule
     , _grHasWon =
         let c2048 = unsafeIntToCell 2048
         in any (>= c2048)
-    , _grMergeAward = \prevTier -> (prevTier+1)*2
+    , _grMergeAward = \prevTier -> shiftL 1 (prevTier+1) -- 2^(prevTier+1)
     }
 
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
