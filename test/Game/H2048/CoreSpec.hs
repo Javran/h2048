@@ -24,7 +24,7 @@ listToGameBoard (rows,cols) grid =
     convert v =
       if v == 0
         then Nothing
-        else Just (intToCell v)
+        else Just (unsafeIntToCell v)
     unwrap (coord, m) = case m of
       Nothing -> []
       Just m' -> [(coord, m')]
@@ -61,7 +61,7 @@ spec = do
       let mergeLine' =
             first (fmap cellToInt)
             . mergeLine gr
-            . fmap intToCell
+            . fmap unsafeIntToCell
       mergeLine' [] `shouldBe` ([], 0)
       mergeLine' [1,1] `shouldBe` ([2], 2)
       mergeLine' [2,2,4] `shouldBe` ([4,4], 4)

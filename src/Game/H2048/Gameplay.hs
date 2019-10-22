@@ -128,4 +128,4 @@ isAlive gp = case possibleMoves (_gpRule gp) (_gpBoard gp) of
 hasWon :: Gameplay -> Bool
 hasWon gp = any (>= c2048) (_gpBoard gp)
   where
-    c2048 = intToCell 2048
+    c2048 = unsafeIntToCell 2048

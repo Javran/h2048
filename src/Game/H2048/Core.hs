@@ -14,7 +14,9 @@ module Game.H2048.Core
   , allCoords
   , applyMove
   , possibleMoves
-  , intToCell, cellToInt
+  , unsafeIntToCell
+  , intToCell
+  , cellToInt
   , standardGameRule
   , merge
   , mergeWithScore
@@ -72,9 +74,15 @@ type CellTier = Int
 
 newtype Cell = Cell { _cTier :: CellTier } deriving (Eq, Ord, Show)
 
--- note that the input must be powers of 2.
-intToCell :: Int -> Cell
-intToCell = Cell . countTrailingZeros
+{-
+  Given that standard game is based on powers of 2, it makes sense
+  that we export some direct support for it.
+ -}
+unsafeIntToCell :: Int -> Cell
+unsafeIntToCell = Cell . countTrailingZeros
+
+intToCell :: Int -> Maybe Cell
+intToCell v = [ unsafeIntToCell v | v > 0, popCount v == 1 ]
 
 cellToInt :: Cell -> Int
 cellToInt (Cell t) = shiftL 1 t
