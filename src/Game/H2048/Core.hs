@@ -24,6 +24,7 @@ module Game.H2048.Core
   , dirToCoordsGroups
   , computeDistrib
   , testDistrib
+  , isAlive
   ) where
 
 import Control.Monad.ST
@@ -118,6 +119,7 @@ data GameRule
   , _grNewCellDistrib :: V.Vector (Int, Int)
     -- how many cells to spawn at the beginning of a game.
   , _grInitSpawn :: Int
+  , _grHasWon :: GameBoard -> Bool
   }
 
 standardGameRule :: GameRule
@@ -125,14 +127,12 @@ standardGameRule = GameRule
     { _grDim = (4,4)
     , _grInitSpawn = 2
     , _grNewCellDistrib = computeDistrib $ IM.fromList [(1, 9), (2,1)]
-    -- TODO: this "hasWon" function seems to be only blocker
-    -- for separating game rule and game state, removed for now
-    -- but we'd like to recover this or find a reasonable alternative for it.
-    -- , _grHasWon = any (>= goalCell) . _gsBoard
+    , _grHasWon =
+        let c2048 = unsafeIntToCell 2048
+        in any (>= c2048)
     , ..
     }
   where
-    -- goalCell = intToCell 2048
     _grMergeAward ct = shiftL 1 (ct+1)
 
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
@@ -280,3 +280,6 @@ testDistrib count xs = do
         . evalState (replicateM count (state (randomPick d)))
         $ g
   mapM_ print (IM.toAscList picks)
+
+isAlive :: GameRule -> GameBoard -> Bool
+isAlive gr bd = not . null $ possibleMoves gr bd

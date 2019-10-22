@@ -27,7 +27,8 @@ import System.Random.TF.Instances
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 
-import Game.H2048.Core
+import Game.H2048.Core hiding (isAlive)
+import qualified Game.H2048.Core as Core
 
 {-
   Just a quick note that if we were to implement Gameplay
@@ -121,11 +122,7 @@ stepGame dir gp = do
     }
 
 isAlive :: Gameplay -> Bool
-isAlive gp = case possibleMoves (_gpRule gp) (_gpBoard gp) of
-  [] -> False
-  _ -> True
+isAlive = Core.isAlive <$> _gpRule <*> _gpBoard
 
 hasWon :: Gameplay -> Bool
-hasWon gp = any (>= c2048) (_gpBoard gp)
-  where
-    c2048 = unsafeIntToCell 2048
+hasWon = (_grHasWon . _gpRule) <*> _gpBoard
