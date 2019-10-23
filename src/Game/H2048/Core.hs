@@ -101,10 +101,6 @@ type GameBoard = M.Map Coord Cell
 {-
   TODO: parametrize mergeAward and newCellDistrib on GameState.
   For now this is complicated and unnecessary.
-
-  TODO: the current design of GameRule attempts to avoid
-  using powers of 2 and instead just rely on the concept
-  of cell tier. We might revisit this decision in future.
  -}
 data GameRule
   = GameRule
