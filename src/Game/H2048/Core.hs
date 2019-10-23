@@ -98,10 +98,6 @@ type Coord = (Int, Int) -- (<row>, <col>) 0-based.
  -}
 type GameBoard = M.Map Coord Cell
 
-{-
-  TODO: parametrize mergeAward and newCellDistrib on GameState.
-  For now this is complicated and unnecessary.
- -}
 data GameRule
   = GameRule
   { -- dimension of the board. (<# of rows>, <# of cols>)
