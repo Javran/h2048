@@ -38,11 +38,24 @@ import qualified Game.H2048.Core as Core
   the stack of transformers.
  -}
 
+{-|
+  A 'Gameplay' is an obscure data type to keep track of information necessary
+  for a single game play. Its fields can be accessed through functions
+  with @_gp@ prefix.
+ -}
 data Gameplay
   = Gameplay
-  { _gpRule :: GameRule -- game rules, must be read-only after creation.
+  {
+    -- | Encodes rule of this game. This field must not change after creation.
+    _gpRule :: GameRule
+    -- | Total score currently collected.
   , _gpScore :: Int
+    {-|
+      The Game board. If this field is an empty map,
+      that means the game is not yet started.
+     -}
   , _gpBoard :: GameBoard
+    -- | Random generator.
   , _gpGen :: TFGen
   }
 
