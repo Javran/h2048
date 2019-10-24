@@ -3,10 +3,16 @@
   , TupleSections
   , LambdaCase
   #-}
+{-|
+  This module is considered internal.
+  Clients should use "Game.H2048.Gameplay" instead.
+ -}
 module Game.H2048.Core
   ( Coord
   , Dir(..)
+  , CellTier
   , Cell(..)
+  , Distrib
   , GameRule(..)
   , GameBoard
   , randomPick
@@ -52,7 +58,8 @@ import qualified Data.Vector.Algorithms.Search as VA
   Differences are:
 
   - Board is Map-based rather than any linear structure.
-    This makes it convenient to change values or scale to support non-standard grid
+
+This makes it convenient to change values or scale to support non-standard grid
     (i.e. any board other than 4x4)
 
   - Use a newtype Cell = Cell Int to define tiers rather than using powers of 2.
@@ -70,49 +77,120 @@ import qualified Data.Vector.Algorithms.Search as VA
 
  -}
 
+{-|
+  A `CellTier` is simply a positive `Int`. Every time two cell merges,
+  the tier of the resulting cell increases by one relative to cell tier
+  prior to the merge.
+ -}
 type CellTier = Int
 
-newtype Cell = Cell { _cTier :: CellTier } deriving (Eq, Ord, Show)
+{-|
+  An obscure data type that wraps 'CellTier'.
+  -}
+newtype Cell =
+  Cell
+  { _cTier :: CellTier -- ^ Tier of this cell.
+  } deriving (Eq, Ord, Show)
 
-{-
+{-|
+  Convert an integer to 'Cell', the input is expected
+  to be a power of 2 but no check is enforced.
+
   Given that standard game is based on powers of 2, it makes sense
-  that we export some direct support for it.
+  that we implement some direct support for it.
  -}
 unsafeIntToCell :: Int -> Cell
 unsafeIntToCell = Cell . countTrailingZeros
 
+{-|
+  Safely convert a power of two into 'Cell'.
+ -}
 intToCell :: Int -> Maybe Cell
 intToCell v = [ unsafeIntToCell v | v > 0, popCount v == 1 ]
 
+{-|
+  Convert 'Cell' back into a power of 2.
+ -}
 cellToInt :: Cell -> Int
 cellToInt (Cell t) = shiftL 1 t
 
 merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 
-type Coord = (Int, Int) -- (<row>, <col>) 0-based.
+{-|
+  Zero-based @(rowIndex, colIndex)@.
+ -}
+type Coord = (Int, Int)
 
-{-
-  Note that the board could be empty to indicate that
-  it has not been initialized yet.
+{-|
+  A 'GameBoard' is a map from coordinates to 'Cell's for a game.
+
+  Note that the map could be empty to indicate that
+  a new game is not started yet.
  -}
 type GameBoard = M.Map Coord Cell
 
+type Distrib' a = V.Vector (a, Int)
+{-|
+  A 'Distrib' is a non-empty 'V.Vector' whose each element @(a,b)@ satisfies:
+
+  * @a@, when taken in sequence, is positive and strictly increasing.
+  * @b@, when taken in sequence, is strictly increasing.
+
+  Think this data type as a precomputation result for
+  making weighted random choice.
+
+  You can use 'computeDistrib' to generate a value of this.
+ -}
+type Distrib = Distrib' Int
+
+{-|
+  A data type for encoding game rules that do not necessarily
+  needs to be hard-coded into core logic.
+
+  You can use 'standardGameRule' for a standard game rule,
+  or make changes using it as the base.
+ -}
 data GameRule
   = GameRule
-  { -- dimension of the board. (<# of rows>, <# of cols>)
+  { {-|
+      Dimension of the board. @(numOfRows, numOfCols)@
+      -}
     _grDim :: (Int, Int)
-    -- score awarded given GameState and Cell **before** the merge has happened.
+    {-|
+       Score awarded given 'CellTier' /before/ the merge has happened.
+     -}
   , _grMergeAward :: CellTier -> Int
-    -- newly generated cell should follow this distribution from cell tier to a weight.
-    -- note that values in this IntMap must be non-empty.
-    -- use "computeDistrib" to compute this field.
-  , _grNewCellDistrib :: V.Vector (Int, Int)
-    -- how many cells to spawn at the beginning of a game.
+    {-|
+      Stores precomputation result that encodes distribution of tiers
+      of newly spawned cells.
+     -}
+  , _grNewCellDistrib :: Distrib
+    {-|
+      How many initial cells should be spawned when starting the game.
+
+      Note this value should not exceed number of cells that the board can contain.
+     -}
   , _grInitSpawn :: Int
+    {-|
+      A predicate to tell whether the current game has been won.
+
+      The standard game rule is an interesting one: no more valid moves
+      does not imply losing the game. Instead, getting any cell to 2048
+      (or to tier 11 using this core's terminology) is considerred winning.
+
+      The intention is to abstract this part out to have fun experimenting.
+     -}
   , _grHasWon :: GameBoard -> Bool
+    {- TODO: it makes sense for this function to have access
+       to the current score of the game.
+     -}
   }
 
+{-|
+  The standard game rule. This value can be used as a base
+  for customized game rules.
+ -}
 standardGameRule :: GameRule
 standardGameRule = GameRule
     { _grDim = (4,4)
@@ -140,7 +218,7 @@ mergeLine gr = mergeLine' 0
       a:ys -> first (a:) (mergeLine' acc ys)
       [] -> ([], acc)
 
--- | move direction
+-- | Moves that a user could do.
 data Dir
   = DUp
   | DDown
@@ -232,14 +310,20 @@ possibleMoves gr bd =
   and lookup the corresponding element.
 
  -}
-computeDistrib :: IM.IntMap Int -> V.Vector (Int, Int)
+{-|
+  Computes `Distrib` for weighted random cell tier spawns.
+
+  The input must be a non-empty map from cell tiers to their
+  corresponding weight. All weights must be positive.
+ -}
+computeDistrib :: IM.IntMap Int -> Distrib
 computeDistrib m =
     V.fromListN (IM.size m) $ zip (fmap fst pairs) weights
   where
     pairs = IM.toList m
     weights = scanl1 (+) . fmap snd $ pairs
 
-randomPick :: V.Vector (a, Int) -> TFGen -> (a, TFGen)
+randomPick :: Distrib' a -> TFGen -> (a, TFGen)
 randomPick vec g = runST $ do
     let upper = snd (V.last vec)
         (val, g') = randomR (1, upper) g

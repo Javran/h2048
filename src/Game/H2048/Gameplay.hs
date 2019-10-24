@@ -8,9 +8,11 @@ module Game.H2048.Gameplay
   , mkGameplay
   , spawnNewCell
   , GameBoard
+  , CellTier
   , Cell
   , _cTier
   , Dir(..)
+  , Distrib
   , GameRule(..)
   , newGame
   , stepGame
@@ -19,6 +21,7 @@ module Game.H2048.Gameplay
   , isAlive
   , cellToInt
   , intToCell
+  , computeDistrib
   ) where
 
 import Control.Monad.RWS.Strict
