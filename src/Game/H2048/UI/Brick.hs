@@ -1,4 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+
+{-|
+  Game CUI implemented using [brick](https://github.com/jtdaugherty/brick/).
+ -}
+
 module Game.H2048.UI.Brick
   ( main
   ) where
@@ -13,9 +18,9 @@ import Graphics.Vty.Attributes
 import Graphics.Vty.Input.Events
 import System.Random.TF
 
-import Game.H2048.Gameplay
-
 import qualified Data.Map.Strict as M
+
+import Game.H2048.Gameplay
 
 data RName = RBoard deriving (Eq, Ord)
 

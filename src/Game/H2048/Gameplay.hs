@@ -4,6 +4,7 @@ module Game.H2048.Gameplay
   , _gpScore
   , _gpBoard
   , _gpGen
+  , randomOp
   , mkGameplay
   , spawnNewCell
   , GameBoard
@@ -45,12 +46,24 @@ data Gameplay
   , _gpGen :: TFGen
   }
 
+{-|
+  Lift a function that mutates a 'TFGen' to produce some results to
+  work on 'Gameplay'.
+ -}
 randomOp :: (TFGen -> (a, TFGen)) -> Gameplay -> (a, Gameplay)
 randomOp op gp = (v, gp { _gpGen = g' })
   where
     g = _gpGen gp
     (v, g') = op g
 
+{-|
+  Create a 'Gameplay'. Note that the return value must be passed to 'newGame'
+  before it can accept any game moves.
+
+  The purpose of this two-step approach (i.e. 'mkGameplay' then 'newGame') is
+  to separate data type creation from the effect of mutating random generator,
+  which is required at the beginning of a game.
+ -}
 mkGameplay :: TFGen -> GameRule -> Gameplay
 mkGameplay g r =
   Gameplay
@@ -59,6 +72,19 @@ mkGameplay g r =
     M.empty -- default board is empty - no move is allowed on it.
     g
 
+{-|
+  @spawnNewCell gameplay emptyCells@ picks an empty cell from @emptyCells@,
+  and assign it with a cell value. The operation will fail if and only if
+  @emptyCells@ is empty.
+
+  Upon successful return, the value wrapped in @Just@ is
+  @(sepResult, gameplay')@ where @sepResult@ indicates coordinate and cell value
+  chosen, and remaining part of @emptyCells@.
+
+  The reason for explicitly passing 'emptyCells' on this operation
+  is to make it easier to pick multiple cells while not touching most parts of 'Gameplay'.
+  In fact you can expect this operation to only mutate the 'TFGen' inside 'Gameplay'.
+ -}
 spawnNewCell :: Gameplay -> S.Set Coord -> Maybe (((Coord, Cell), S.Set Coord), Gameplay)
 spawnNewCell gp emptyCells = do
   False <- pure $ S.null emptyCells
@@ -71,8 +97,12 @@ spawnNewCell gp emptyCells = do
       (tier, gp'') = randomOp (randomPick distrib) gp'
   pure (((v, Cell tier), S.delete v emptyCells), gp'')
 
--- this function should only fail when there is insufficient space
--- to fill an empty board with # of initial cell spawn specified in GameRule.
+{-|
+  Initialize a 'Gameplay' so that it\'s ready to play.
+
+  This function should only fail when its 'GameRule' dictates too many
+  initial cells for the whole board to contain.
+ -}
 newGame :: Gameplay -> Gameplay
 newGame gp =
     fix (\loop curGp spawnTodo emptyCells ->
@@ -93,10 +123,11 @@ newGame gp =
     coords = allCoords rule
     initSpawn = _grInitSpawn rule
 
-{-
-  Try to apply a move on current state of the game, returns:
-  - `Nothing` if this move is invalid
-  - `Just moves` if this move is valid, also returns all possible moves
+{-|
+  @stepGame d gp@ tries to apply move @d@ on current state of the game @gp@, returns:
+
+  * @Nothing@ if this move is invalid (failed to apply the move).
+  * @Just moves@ if this move is valid, also returns all possible moves
     after the board is fully updated (meaning new cell has been spawned).
  -}
 stepGame :: Dir -> Gameplay -> Maybe Gameplay
@@ -121,8 +152,15 @@ stepGame dir gp = do
     , _gpScore = _gpScore gp + award
     }
 
+{-|
+  A 'Gameplay' is considered alive if and only if there are still possible moves.
+ -}
 isAlive :: Gameplay -> Bool
 isAlive = Core.isAlive <$> _gpRule <*> _gpBoard
 
+{-|
+  Whether the 'Gameplay' should be considered already won.
+  Queries 'GameRule' embeded in 'Gameplay'.
+ -}
 hasWon :: Gameplay -> Bool
 hasWon = (_grHasWon . _gpRule) <*> _gpBoard

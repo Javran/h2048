@@ -1,3 +1,6 @@
+{-|
+  A simple program that implements interaction with the game.
+ -}
 module Game.H2048.UI.Simple
   ( main
   ) where
