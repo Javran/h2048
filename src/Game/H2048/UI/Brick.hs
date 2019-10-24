@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Game.H2048.UI.Brick where
+module Game.H2048.UI.Brick
+  ( main
+  ) where
 
 import Brick
 import Brick.Widgets.Border
 import Brick.Widgets.Center
-import Data.Bits
 import Data.Functor
 import Data.List
 import Data.String
@@ -19,9 +20,6 @@ import qualified Data.Map.Strict as M
 data RName = RBoard deriving (Eq, Ord)
 
 type AppState = Gameplay
-
-valToTier :: Int -> Int
-valToTier = countTrailingZeros -- tier starting from 1
 
 tierAttr :: Int -> AttrName
 tierAttr = ("tier" <>) . fromString . show
