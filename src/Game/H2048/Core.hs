@@ -114,6 +114,12 @@ intToCell v = [ unsafeIntToCell v | v > 0, popCount v == 1 ]
 cellToInt :: Cell -> Int
 cellToInt (Cell t) = shiftL 1 t
 
+{-|
+  Attempt to merge two 'Cell' s.
+
+  Only successful when two `Cell`s are equal, resulting in a new Cell
+  with tier increased by 1.
+ -}
 merge :: Cell -> Cell -> Maybe Cell
 merge (Cell a) (Cell b) = [ Cell (succ a) | a == b ]
 
@@ -216,6 +222,18 @@ mergeWithScore gr a b = do
   c <- merge a b
   pure (c, _grMergeAward gr ctPrev)
 
+{-|
+  Merge a single line of cells, return the resulting line and
+  scores awarded according to the 'GameRule'.
+ -}
+{-
+  Notice that input and output are both lists:
+
+  * Moving on one direction squeezes out those empty cells,
+    therefore it is not necessary to consider empty cells at all.
+  * Similar rationale for output type - the result is always
+    a line of cells free of empty ones in between any of those.
+ -}
 mergeLine :: GameRule -> [Cell] -> ([Cell], Int)
 mergeLine gr = mergeLine' 0
   where
