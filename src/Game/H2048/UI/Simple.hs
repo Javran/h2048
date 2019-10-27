@@ -113,7 +113,7 @@ playGame = do
      Nothing -> putStrLn "Invalid move" >> gameLoop gp
      Just gp' -> gameLoop gp'
 
--- | the entry of Simple UI
+-- | The entry of simple CLI.
 main :: IO ()
 main = do
   -- turn off buffering to not wait on a newline character.

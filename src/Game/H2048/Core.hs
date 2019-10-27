@@ -174,12 +174,23 @@ data GameRule
   , _grInitSpawn :: Int
     {-|
       A predicate to tell whether the current game has been won.
+     -}
+    {-
+      Some extra notes for those that want to read a bit more:
 
-      The standard game rule is an interesting one: no more valid moves
-      does not imply losing the game. Instead, getting any cell to 2048
-      (or to tier 11 using this core's terminology) is considerred winning.
+      Notice that this core logic only cares about whether we have valid moves
+      on a GameBoard (see also 'isAlive' below) but does not use '_grHasWon' at all.
 
-      The intention is to abstract this part out to have fun experimenting.
+      In fact, in the standard game rule, whether we are winning and whether we have
+      valid moves are sort of independent of each other.
+      This means we can minimize core logic by letting client-facing API module
+      take responsibility for handling the winning logic.
+
+      Despite not being used by core, we still keep it here, because:
+
+      * it makes sense as GameRule is literally the set of things that dictates the gameplay.
+      * modules that implements things on top of this core don't need to
+        add another layer of data type to include extra stuff that they would need.
      -}
   , _grHasWon :: Int -> GameBoard -> Bool
   }
@@ -351,5 +362,12 @@ testDistrib count xs = do
         $ g
   mapM_ print (IM.toAscList picks)
 
+{-|
+  A current game is consider \"alive\" when there are at least one
+  valid move for the current board.
+
+  Note that since a GameBoard can be newly initiate as empty Map,
+  it is not \"alive\" by definition.
+ -}
 isAlive :: GameRule -> GameBoard -> Bool
 isAlive gr bd = not . null $ possibleMoves gr bd

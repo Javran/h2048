@@ -101,6 +101,7 @@ getMove (KChar 'j') = Just DLeft
 getMove (KChar 'l') = Just DRight
 getMove _ = Nothing
 
+-- | The entry for the CUI, a fancier and more practical one.
 main :: IO ()
 main = do
   g <- newTFGen
