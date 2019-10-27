@@ -179,4 +179,4 @@ isAlive = Core.isAlive <$> _gpRule <*> _gpBoard
   Queries 'GameRule' embeded in 'Gameplay'.
  -}
 hasWon :: Gameplay -> Bool
-hasWon = (_grHasWon . _gpRule) <*> _gpBoard
+hasWon = (_grHasWon . _gpRule) <*> _gpScore <*> _gpBoard

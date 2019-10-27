@@ -181,10 +181,7 @@ data GameRule
 
       The intention is to abstract this part out to have fun experimenting.
      -}
-  , _grHasWon :: GameBoard -> Bool
-    {- TODO: it makes sense for this function to have access
-       to the current score of the game.
-     -}
+  , _grHasWon :: Int -> GameBoard -> Bool
   }
 
 {-|
@@ -196,7 +193,7 @@ standardGameRule = GameRule
     { _grDim = (4,4)
     , _grInitSpawn = 2
     , _grNewCellDistrib = computeDistrib $ IM.fromList [(1, 9), (2, 1)]
-    , _grHasWon =
+    , _grHasWon = \_score ->
         let c2048 = unsafeIntToCell 2048
         in any (>= c2048)
     , _grMergeAward = \prevTier -> shiftL 1 (prevTier+1) -- 2^(prevTier+1)
