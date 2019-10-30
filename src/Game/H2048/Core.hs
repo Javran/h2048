@@ -9,9 +9,12 @@
  -}
 module Game.H2048.Core
   ( Coord
+  , Coords
+  , CoordsGroup
   , Dir(..)
   , CellTier
   , Cell(..)
+  , Distrib'
   , Distrib
   , GameRule(..)
   , GameBoard
@@ -136,7 +139,11 @@ type Coord = (Int, Int)
  -}
 type GameBoard = M.Map Coord Cell
 
+{-|
+  The same as 'Distrib' except parameterized on the value type.
+ -}
 type Distrib' a = V.Vector (a, Int)
+
 {-|
   A 'Distrib' is a non-empty 'V.Vector' whose each element @(a,b)@ satisfies:
 
@@ -216,6 +223,9 @@ standardGameRule = GameRule
     , _grMergeAward = \prevTier -> shiftL 1 (prevTier+1) -- 2^(prevTier+1)
     }
 
+{-|
+  Merge two cells with a reward as specified by 'GameRule'.
+ -}
 mergeWithScore :: GameRule -> Cell -> Cell -> Maybe (Cell, Int)
 mergeWithScore gr a b = do
   let Cell ctPrev = a
@@ -252,9 +262,21 @@ data Dir
   | DRight
   deriving (Enum, Bounded, Eq, Ord, Show)
 
+{-|
+  List of 'Coord'. This list
+  is usually a complete row or column in the game board.
+ -}
 type Coords = [Coord]
+
+{-|
+  List of 'Coords', expected to exact-cover the game board.
+ -}
 type CoordsGroup = [Coords]
 
+{-|
+  Given a game move,
+  return rows or columns of 'Coords' that forms the complete board.
+ -}
 dirToCoordsGroups :: GameRule -> Dir -> CoordsGroup
 dirToCoordsGroups gr = \case
     DUp -> do
@@ -272,12 +294,16 @@ dirToCoordsGroups gr = \case
   where
     (rows, cols) = _grDim gr
 
--- extract a line (row or col) of cells from board
--- using the game move specified.
+{-|
+  Retrieve a list of cells from game board.
+  This operation preserves order. Empty cells are excluded from the result.
+ -}
 extractByCoords :: GameBoard -> [Coord] -> [Cell]
 extractByCoords bd = mapMaybe (bd M.!?)
 
--- return a unique, sorted list of all coordinations of a board.
+{-|
+  Return a unique, sorted list of all coordinations of a board.
+ -}
 allCoords :: GameRule -> Coords
 allCoords GameRule { _grDim = (rowCnt, colCnt) } =
   [ (r,c) | r <- [0..rowCnt-1], c <- [0..colCnt-1] ]
@@ -298,6 +324,9 @@ alterCoordsOnBoard coords vals =
     alterBoard (coord, mVal) = M.alter (const mVal) coord
     mVals = (Just <$> vals) <> repeat Nothing
 
+{-|
+  Apply a game move on certain part of the board specified by @Coords@.
+ -}
 applyMoveOnCoords :: GameRule -> Coords -> GameBoard -> (GameBoard, Int)
 applyMoveOnCoords gr coords bd =
     (alterCoordsOnBoard coords cells' bd, score)
@@ -305,7 +334,10 @@ applyMoveOnCoords gr coords bd =
     cells = extractByCoords bd coords
     (cells', score) = mergeLine gr cells
 
--- apply a game move on a board.
+{-|
+  Apply a game move on a board.
+  This operation fails if and only if the move results in no change to the game board.
+ -}
 applyMove :: GameRule -> Dir -> GameBoard -> Maybe (GameBoard, Int)
 applyMove gr dir bd =
     {-
@@ -321,6 +353,9 @@ applyMove gr dir bd =
         bd
     score = sum (scores :: [Int])
 
+{-|
+  Return possible moves that can be performed on current board.
+ -}
 possibleMoves :: GameRule -> GameBoard -> [Dir]
 possibleMoves gr bd =
   [ d | d <- [minBound .. maxBound], isJust (applyMove gr d bd) ]
@@ -349,6 +384,9 @@ computeDistrib m =
     pairs = IM.toList m
     weights = scanl1 (+) . fmap snd $ pairs
 
+{-|
+  Pick a value randomly following the distribution as specified by the argument.
+ -}
 randomPick :: Distrib' a -> TFGen -> (a, TFGen)
 randomPick vec g = runST $ do
     let upper = snd (V.last vec)
@@ -369,6 +407,11 @@ randomPick vec g = runST $ do
     ind <- VA.binarySearchLBy (comparing snd) mv (error "unused", val)
     pure (fst (vec V.! ind), g')
 
+{-|
+  Repeat the process of randomly picking elements following a distribution in @IO@.
+
+  This function is exported just for manual testing.
+ -}
 testDistrib :: Int -> [(Int, Int)] -> IO ()
 testDistrib count xs = do
   let d = computeDistrib (IM.fromList xs)

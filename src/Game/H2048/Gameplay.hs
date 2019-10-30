@@ -1,3 +1,8 @@
+{-|
+  Game implementation on top of "Game.H2048.Core".
+  This module is formally the API for this package,
+  please avoid using "Game.H2048.Core" directly if possible.
+ -}
 module Game.H2048.Gameplay
   ( Gameplay
   , _gpRule
@@ -104,7 +109,7 @@ mkGameplay g r =
   @(sepResult, gameplay')@ where @sepResult@ indicates coordinate and cell value
   chosen, and remaining part of @emptyCells@.
 
-  The reason for explicitly passing 'emptyCells' on this operation
+  The reason for explicitly passing @emptyCells@ on this operation
   is to make it easier to pick multiple cells while not touching most parts of 'Gameplay'.
   In fact you can expect this operation to only mutate the 'TFGen' inside 'Gameplay'.
  -}
