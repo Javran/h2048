@@ -35,10 +35,17 @@ import Game.H2048.Core hiding (isAlive)
 import qualified Game.H2048.Core as Core
 
 {-
-  Just a quick note that if we were to implement Gameplay
-  in terms of monad transformer, MonadTransControl might be
-  useful to allow passing IO actions to brick while keeping
-  the stack of transformers.
+  Some quick note: I originally thought http://hackage.haskell.org/package/monad-control
+  might offer some nice tools that allows us to turn the stack of monad transformers into
+  a base monad with the stack encoded, but actually it doesn't help much
+  in this case: we've all known monad cannot be escaped without magic, even if
+  we somehow get a base monad back, it's still packed within current monad,
+  not very helpful.
+
+  In addition, monad-control seems to encode MonadReader by ignoring its environment.
+  I can understand this design choice but this also means we need to pass the environment
+  as argument when we recover the transformer stack - so in conclusion, I still think
+  current implementation is good enough.
  -}
 
 {-|
