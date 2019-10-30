@@ -356,9 +356,9 @@ applyMove gr dir bd =
 {-|
   Return possible moves that can be performed on current board.
  -}
-possibleMoves :: GameRule -> GameBoard -> [Dir]
+possibleMoves :: GameRule -> GameBoard -> [(Dir, (GameBoard, Int))]
 possibleMoves gr bd =
-  [ d | d <- [minBound .. maxBound], isJust (applyMove gr d bd) ]
+  mapMaybe (\d -> (d,) <$> applyMove gr d bd) [minBound .. maxBound]
 
 {-
   Pre-processing the distribution:
